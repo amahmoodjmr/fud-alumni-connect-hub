@@ -107,8 +107,19 @@ export function AuthForm({ mode, isAdmin = false }: AuthFormProps) {
 
         if (signUpError) throw signUpError;
 
-        toast.success('Registration successful! Please check your email to verify.');
-        navigate('/verification');
+        // Attempt to sign in immediately after signup instead of redirecting to verification page
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        
+        if (signInError) {
+          toast.success('Registration successful! Please check your email for verification if needed.');
+          navigate('/login');
+        } else {
+          toast.success('Registration and login successful!');
+          navigate('/alumni/dashboard');
+        }
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'An error occurred';
