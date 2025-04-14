@@ -9,7 +9,198 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      events: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string
+          event_date: string
+          id: string
+          image_url: string | null
+          location: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description: string
+          event_date: string
+          id?: string
+          image_url?: string | null
+          location?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string
+          event_date?: string
+          id?: string
+          image_url?: string | null
+          location?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      gallery: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          image_url: string
+          title: string
+          upload_date: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url: string
+          title: string
+          upload_date?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string
+          title?: string
+          upload_date?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: []
+      }
+      news: {
+        Row: {
+          content: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          image_url: string | null
+          published_date: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          image_url?: string | null
+          published_date?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          image_url?: string | null
+          published_date?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string | null
+          description: string | null
+          id: string
+          payment_date: string | null
+          payment_type: string
+          status: string | null
+          transaction_ref: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          payment_date?: string | null
+          payment_type: string
+          status?: string | null
+          transaction_ref?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          payment_date?: string | null
+          payment_type?: string
+          status?: string | null
+          transaction_ref?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          address: string | null
+          alumni_id: string | null
+          created_at: string | null
+          department: string | null
+          dob: string | null
+          faculty: string | null
+          first_name: string
+          gender: string | null
+          graduation_year: number | null
+          id: string
+          is_admin: boolean | null
+          last_name: string
+          profile_image_url: string | null
+          state: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          alumni_id?: string | null
+          created_at?: string | null
+          department?: string | null
+          dob?: string | null
+          faculty?: string | null
+          first_name: string
+          gender?: string | null
+          graduation_year?: number | null
+          id: string
+          is_admin?: boolean | null
+          last_name: string
+          profile_image_url?: string | null
+          state?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          alumni_id?: string | null
+          created_at?: string | null
+          department?: string | null
+          dob?: string | null
+          faculty?: string | null
+          first_name?: string
+          gender?: string | null
+          graduation_year?: number | null
+          id?: string
+          is_admin?: boolean | null
+          last_name?: string
+          profile_image_url?: string | null
+          state?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
