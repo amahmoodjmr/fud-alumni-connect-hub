@@ -11,7 +11,6 @@ import { useState, useEffect } from "react";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/auth/AuthPage";
-import AlumniDashboard from "./pages/alumni/Dashboard";
 import AdminDashboard from "./pages/admin/Dashboard";
 import ProfileManagement from "./pages/alumni/ProfileManagement";
 import AlumniDirectory from "./pages/alumni/Directory";
@@ -19,11 +18,10 @@ import EventsPage from "./pages/events/EventsPage";
 import NewsPage from "./pages/news/NewsPage";
 import PaymentsPage from "./pages/alumni/Payments";
 import VerificationPage from "./pages/auth/VerificationPage";
-
-const queryClient = new QueryClient();
+import AlumniDashboard from "./pages/alumni/Dashboard";
 
 // Protected Route Component
-const ProtectedRoute = ({ children, adminOnly = false }: { children: React.ReactNode, adminOnly?: boolean }) => {
+const ProtectedRoute = ({ children, adminOnly = false }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -72,13 +70,16 @@ const ProtectedRoute = ({ children, adminOnly = false }: { children: React.React
   return <>{children}</>;
 };
 
-const App = () => {
+function App() {
+  // Create a new QueryClient instance inside the component 
+  const queryClient = new QueryClient();
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
           <Routes>
             <Route path="/" element={<Index />} />
             
@@ -139,10 +140,10 @@ const App = () => {
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </BrowserRouter>
   );
-};
+}
 
 export default App;
