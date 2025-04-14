@@ -2,13 +2,40 @@
 import React from 'react';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { User, Calendar, Bell, CreditCard, Users } from 'lucide-react';
+import { User, Calendar, Bell, CreditCard, Users, Search, Image, LogOut } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 const AlumniDashboard = () => {
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast.success('Logged out successfully');
+      navigate('/login');
+    } catch (error) {
+      toast.error('Error logging out');
+    }
+  };
+
   return (
     <Layout>
       <div className="container mx-auto py-8">
-        <h1 className="text-2xl font-bold mb-6">Alumni Dashboard</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Alumni Dashboard</h1>
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2"
+            onClick={handleLogout}
+          >
+            <LogOut size={16} />
+            Logout
+          </Button>
+        </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <Card>
@@ -58,6 +85,59 @@ const AlumniDashboard = () => {
               </div>
             </CardContent>
           </Card>
+        </div>
+        
+        {/* Alumni Features Section */}
+        <h2 className="text-xl font-semibold mb-4">Alumni Features</h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <Link to="/alumni/profile">
+            <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
+              <CardContent className="p-6 flex flex-col items-center text-center">
+                <div className="bg-fud-green-50 p-4 rounded-full mb-4">
+                  <User className="h-8 w-8 text-fud-green" />
+                </div>
+                <h3 className="font-medium mb-2">Manage Profile</h3>
+                <p className="text-sm text-gray-500">Update your personal information and profile picture</p>
+              </CardContent>
+            </Card>
+          </Link>
+          
+          <Link to="/alumni/directory">
+            <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
+              <CardContent className="p-6 flex flex-col items-center text-center">
+                <div className="bg-fud-green-50 p-4 rounded-full mb-4">
+                  <Search className="h-8 w-8 text-fud-green" />
+                </div>
+                <h3 className="font-medium mb-2">Alumni Directory</h3>
+                <p className="text-sm text-gray-500">Find and connect with other alumni</p>
+              </CardContent>
+            </Card>
+          </Link>
+          
+          <Link to="/gallery">
+            <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
+              <CardContent className="p-6 flex flex-col items-center text-center">
+                <div className="bg-fud-green-50 p-4 rounded-full mb-4">
+                  <Image className="h-8 w-8 text-fud-green" />
+                </div>
+                <h3 className="font-medium mb-2">Image Gallery</h3>
+                <p className="text-sm text-gray-500">View photos from university events and reunions</p>
+              </CardContent>
+            </Card>
+          </Link>
+          
+          <Link to="/alumni/payments">
+            <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
+              <CardContent className="p-6 flex flex-col items-center text-center">
+                <div className="bg-fud-green-50 p-4 rounded-full mb-4">
+                  <CreditCard className="h-8 w-8 text-fud-green" />
+                </div>
+                <h3 className="font-medium mb-2">Make Payments</h3>
+                <p className="text-sm text-gray-500">Pay dues and make contributions</p>
+              </CardContent>
+            </Card>
+          </Link>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

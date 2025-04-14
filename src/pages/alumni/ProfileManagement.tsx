@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
@@ -9,22 +9,83 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { User, Upload, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { toast } from 'sonner';
+import ProfilePictureUpload from '@/components/profile/ProfilePictureUpload';
+import { supabase } from '@/integrations/supabase/client';
 
 const ProfileManagement = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const [userId, setUserId] = useState<string | undefined>();
+  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm();
 
-  const onSubmit = (data) => {
+  // Fetch user profile data on component mount
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        setUserId(session.user.id);
+        
+        // Fetch profile data
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+          
+        if (data && !error) {
+          // Set form values
+          Object.entries(data).forEach(([key, value]) => {
+            if (value !== null) setValue(key, value);
+          });
+          
+          // Set profile image if exists
+          if (data.profile_image_url) {
+            setProfileImageUrl(data.profile_image_url);
+          }
+        }
+      }
+    };
+    
+    fetchUserProfile();
+  }, [setValue]);
+
+  const onSubmit = async (data) => {
+    if (!userId) {
+      toast.error("You must be logged in to update your profile");
+      return;
+    }
+    
     setIsLoading(true);
     
-    // Simulate an API call
-    setTimeout(() => {
-      console.log('Profile data:', data);
+    try {
+      // Include the profile image URL in the data to update
+      const updatedData = {
+        ...data,
+        profile_image_url: profileImageUrl,
+        updated_at: new Date()
+      };
+      
+      const { error } = await supabase
+        .from('profiles')
+        .update(updatedData)
+        .eq('id', userId);
+        
+      if (error) throw error;
+      
       toast.success("Profile updated successfully!");
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast.error("Failed to update profile");
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
+  };
+
+  const handleProfileImageUpdate = (url: string) => {
+    setProfileImageUrl(url);
   };
 
   return (
@@ -34,27 +95,11 @@ const ProfileManagement = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="md:col-span-1">
-            <Card>
-              <CardHeader>
-                <CardTitle>Profile Picture</CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-col items-center">
-                <div className="w-40 h-40 rounded-full bg-gray-200 flex items-center justify-center mb-4">
-                  <User className="h-20 w-20 text-gray-400" />
-                </div>
-                
-                <div className="w-full">
-                  <Label htmlFor="picture" className="mb-2 block">Upload new picture</Label>
-                  <div className="flex items-center gap-2">
-                    <Input id="picture" type="file" />
-                    <Button size="sm" className="bg-fud-green hover:bg-fud-green-dark">
-                      <Upload className="h-4 w-4 mr-2" />
-                      Upload
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <ProfilePictureUpload 
+              userId={userId}
+              currentImageUrl={profileImageUrl}
+              onImageUpdate={handleProfileImageUpdate}
+            />
           </div>
           
           <div className="md:col-span-2">
@@ -66,23 +111,23 @@ const ProfileManagement = () => {
                 <form onSubmit={handleSubmit(onSubmit)}>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div>
-                      <Label htmlFor="firstName">First Name</Label>
+                      <Label htmlFor="first_name">First Name</Label>
                       <Input 
-                        id="firstName"
-                        {...register("firstName", { required: true })}
-                        className={errors.firstName ? "border-red-500" : ""}
+                        id="first_name"
+                        {...register("first_name", { required: true })}
+                        className={errors.first_name ? "border-red-500" : ""}
                       />
-                      {errors.firstName && <p className="text-red-500 text-sm mt-1">First name is required</p>}
+                      {errors.first_name && <p className="text-red-500 text-sm mt-1">First name is required</p>}
                     </div>
                     
                     <div>
-                      <Label htmlFor="lastName">Last Name</Label>
+                      <Label htmlFor="last_name">Last Name</Label>
                       <Input 
-                        id="lastName"
-                        {...register("lastName", { required: true })}
-                        className={errors.lastName ? "border-red-500" : ""}
+                        id="last_name"
+                        {...register("last_name", { required: true })}
+                        className={errors.last_name ? "border-red-500" : ""}
                       />
-                      {errors.lastName && <p className="text-red-500 text-sm mt-1">Last name is required</p>}
+                      {errors.last_name && <p className="text-red-500 text-sm mt-1">Last name is required</p>}
                     </div>
                     
                     <div>
@@ -90,10 +135,10 @@ const ProfileManagement = () => {
                       <Input 
                         id="email"
                         type="email"
-                        {...register("email", { required: true })}
-                        className={errors.email ? "border-red-500" : ""}
+                        disabled // Email should be managed through auth settings
+                        {...register("email")}
                       />
-                      {errors.email && <p className="text-red-500 text-sm mt-1">Email is required</p>}
+                      <p className="text-xs text-gray-500 mt-1">Email can only be changed through account settings</p>
                     </div>
                     
                     <div>
@@ -115,7 +160,7 @@ const ProfileManagement = () => {
                     
                     <div>
                       <Label htmlFor="gender">Gender</Label>
-                      <Select>
+                      <Select onValueChange={(value) => setValue('gender', value)}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select gender" />
                         </SelectTrigger>
@@ -134,19 +179,19 @@ const ProfileManagement = () => {
                     <h3 className="text-lg font-medium mb-4">Academic Information</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="alumniId">Alumni ID</Label>
+                        <Label htmlFor="alumni_id">Alumni ID</Label>
                         <Input 
-                          id="alumniId"
-                          {...register("alumniId")}
+                          id="alumni_id"
+                          {...register("alumni_id")}
                         />
                       </div>
                       
                       <div>
-                        <Label htmlFor="graduationYear">Graduation Year</Label>
+                        <Label htmlFor="graduation_year">Graduation Year</Label>
                         <Input 
-                          id="graduationYear"
+                          id="graduation_year"
                           type="number"
-                          {...register("graduationYear")}
+                          {...register("graduation_year")}
                         />
                       </div>
                       

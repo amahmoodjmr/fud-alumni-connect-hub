@@ -19,6 +19,7 @@ import NewsPage from "./pages/news/NewsPage";
 import PaymentsPage from "./pages/alumni/Payments";
 import VerificationPage from "./pages/auth/VerificationPage";
 import AlumniDashboard from "./pages/alumni/Dashboard";
+import GalleryPage from "./pages/gallery/GalleryPage";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, adminOnly = false }) => {
@@ -119,6 +120,16 @@ function App() {
               element={
                 <ProtectedRoute>
                   <PaymentsPage />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Gallery Page */}
+            <Route 
+              path="/gallery" 
+              element={
+                <ProtectedRoute>
+                  <GalleryPage />
                 </ProtectedRoute>
               } 
             />
