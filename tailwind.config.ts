@@ -61,6 +61,29 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// FUD Theme Colors
+				fud: {
+					green: {
+						DEFAULT: '#166534', // emerald-700
+						light: '#16a34a', // emerald-600
+						dark: '#14532d', // emerald-800
+						50: '#f0fdf4',
+						100: '#dcfce7',
+						200: '#bbf7d0',
+						300: '#86efac',
+						400: '#4ade80',
+						500: '#22c55e',
+						600: '#16a34a',
+						700: '#166534',
+						800: '#14532d',
+						900: '#0f3024',
+						950: '#052e16',
+					},
+					neutralGray: '#8E9196',
+					softGreen: '#F2FCE2',
+					lightGray: '#F3F3F3',
+					darkGray: '#333333'
 				}
 			},
 			borderRadius: {
