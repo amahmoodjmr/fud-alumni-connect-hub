@@ -28,7 +28,7 @@ serve(async (req) => {
 
     if (checkError) {
       // If the function doesn't exist, create it first
-      await supabaseAdmin.rpc(`
+      const { error: createFunctionError } = await supabaseAdmin.query(`
         CREATE OR REPLACE FUNCTION column_exists(table_name text, column_name text) 
         RETURNS boolean AS $$
         DECLARE
@@ -45,6 +45,8 @@ serve(async (req) => {
         $$ LANGUAGE plpgsql;
       `);
       
+      if (createFunctionError) throw createFunctionError;
+      
       // Try the check again
       const { data, error } = await supabaseAdmin.rpc('column_exists', { 
         table_name: 'profiles',
@@ -60,7 +62,7 @@ serve(async (req) => {
 
     // If column doesn't exist, add it
     if (!columnExists) {
-      const { error: alterError } = await supabaseAdmin.rpc(`
+      const { error: alterError } = await supabaseAdmin.query(`
         ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS phone TEXT;
       `);
 
@@ -77,6 +79,7 @@ serve(async (req) => {
       });
     }
   } catch (error) {
+    console.error("Error:", error);
     return new Response(JSON.stringify({ success: false, error: error.message }), { 
       headers: { ...corsHeaders, "Content-Type": "application/json" }, 
       status: 500 

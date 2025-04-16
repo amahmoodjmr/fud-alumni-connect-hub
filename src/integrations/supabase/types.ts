@@ -161,6 +161,7 @@ export type Database = {
           id: string
           is_admin: boolean | null
           last_name: string
+          phone: string | null
           profile_image_url: string | null
           state: string | null
           updated_at: string | null
@@ -178,6 +179,7 @@ export type Database = {
           id: string
           is_admin?: boolean | null
           last_name: string
+          phone?: string | null
           profile_image_url?: string | null
           state?: string | null
           updated_at?: string | null
@@ -195,6 +197,7 @@ export type Database = {
           id?: string
           is_admin?: boolean | null
           last_name?: string
+          phone?: string | null
           profile_image_url?: string | null
           state?: string | null
           updated_at?: string | null
