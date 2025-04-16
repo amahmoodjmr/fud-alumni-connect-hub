@@ -8,9 +8,11 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { CreditCard, Receipt, Clock, CheckCircle, X, Calendar, AlertCircle } from 'lucide-react';
+import { CreditCard, Receipt, Clock, CheckCircle, X, Calendar, AlertCircle, CreditCard as CardIcon, Building } from 'lucide-react';
 import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
+import 'react-credit-cards/es/styles-compiled.css';
 
 // Sample payment history data
 const paymentHistory = [
@@ -29,28 +31,14 @@ const paymentHistory = [
     date: '2023-02-10',
     status: 'completed',
     reference: 'REF-8765433'
-  },
-  {
-    id: 'PAY-12347',
-    type: 'Donation',
-    amount: 10000,
-    date: '2023-01-05',
-    status: 'completed',
-    reference: 'REF-8765434'
-  },
-  {
-    id: 'PAY-12348',
-    type: 'Special Project',
-    amount: 7500,
-    date: '2022-12-20',
-    status: 'completed',
-    reference: 'REF-8765435'
   }
 ];
 
 const PaymentsPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('card');
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
+  const navigate = useNavigate();
   
   const onSubmit = (data) => {
     setIsSubmitting(true);
@@ -58,9 +46,11 @@ const PaymentsPage = () => {
     // Simulate payment processing
     setTimeout(() => {
       console.log('Payment data:', data);
-      toast.success('Payment initiated successfully!');
+      toast.success('Payment processed successfully!');
       setIsSubmitting(false);
       reset();
+      // Redirect to dashboard after successful payment
+      navigate('/alumni/dashboard');
     }, 1500);
   };
 
@@ -90,7 +80,7 @@ const PaymentsPage = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                         <div className="col-span-2">
                           <Label htmlFor="paymentType">Payment Type</Label>
-                          <Select>
+                          <Select defaultValue="dues">
                             <SelectTrigger id="paymentType">
                               <SelectValue placeholder="Select payment type" />
                             </SelectTrigger>
@@ -108,17 +98,21 @@ const PaymentsPage = () => {
                           <Input 
                             id="amount"
                             type="number"
+                            defaultValue={2500}
+                            readOnly
+                            className="bg-gray-100"
                             {...register("amount", { required: true, min: 100 })}
-                            className={errors.amount ? "border-red-500" : ""}
                           />
-                          {errors.amount && (
-                            <p className="text-red-500 text-xs mt-1">Valid amount is required</p>
-                          )}
                         </div>
                         
                         <div className="col-span-2 md:col-span-1">
-                          <Label htmlFor="purpose">Purpose (Optional)</Label>
-                          <Input id="purpose" {...register("purpose")} />
+                          <Label htmlFor="purpose">Purpose</Label>
+                          <Input 
+                            id="purpose" 
+                            value="Annual Alumni Dues" 
+                            readOnly 
+                            className="bg-gray-100"
+                          />
                         </div>
                       </div>
                       
@@ -128,84 +122,134 @@ const PaymentsPage = () => {
                         <h3 className="font-medium">Payment Methods</h3>
                         
                         <div className="grid grid-cols-1 gap-4">
-                          <div className="border rounded-md p-4">
+                          <div className={`border rounded-md p-4 ${paymentMethod === 'card' ? 'border-fud-green' : ''}`}>
                             <div className="flex items-center space-x-2">
                               <input 
                                 type="radio" 
                                 id="card" 
                                 name="paymentMethod" 
                                 value="card" 
-                                defaultChecked
+                                checked={paymentMethod === 'card'}
+                                onChange={() => setPaymentMethod('card')}
                               />
                               <Label htmlFor="card" className="flex items-center">
-                                <CreditCard className="mr-2 h-4 w-4" />
+                                <CardIcon className="mr-2 h-4 w-4" />
                                 Credit/Debit Card
                               </Label>
                             </div>
                             
-                            <div className="mt-4 space-y-4">
-                              <div>
-                                <Label htmlFor="cardNumber">Card Number</Label>
-                                <Input 
-                                  id="cardNumber"
-                                  placeholder="0000 0000 0000 0000"
-                                  {...register("cardNumber", { required: true })}
-                                  className={errors.cardNumber ? "border-red-500" : ""}
-                                />
-                                {errors.cardNumber && (
-                                  <p className="text-red-500 text-xs mt-1">Card number is required</p>
-                                )}
-                              </div>
-                              
-                              <div className="grid grid-cols-2 gap-4">
+                            {paymentMethod === 'card' && (
+                              <div className="mt-4 space-y-4">
                                 <div>
-                                  <Label htmlFor="expiryDate">Expiry Date</Label>
+                                  <Label htmlFor="cardNumber">Card Number</Label>
                                   <Input 
-                                    id="expiryDate"
-                                    placeholder="MM/YY"
-                                    {...register("expiryDate", { required: true })}
-                                    className={errors.expiryDate ? "border-red-500" : ""}
+                                    id="cardNumber"
+                                    placeholder="0000 0000 0000 0000"
+                                    {...register("cardNumber", { required: paymentMethod === 'card' })}
+                                    className={errors.cardNumber ? "border-red-500" : ""}
                                   />
-                                  {errors.expiryDate && (
-                                    <p className="text-red-500 text-xs mt-1">Expiry date is required</p>
+                                  {errors.cardNumber && (
+                                    <p className="text-red-500 text-xs mt-1">Card number is required</p>
+                                  )}
+                                </div>
+                                
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <Label htmlFor="expiryDate">Expiry Date</Label>
+                                    <Input 
+                                      id="expiryDate"
+                                      placeholder="MM/YY"
+                                      {...register("expiryDate", { required: paymentMethod === 'card' })}
+                                      className={errors.expiryDate ? "border-red-500" : ""}
+                                    />
+                                    {errors.expiryDate && (
+                                      <p className="text-red-500 text-xs mt-1">Expiry date is required</p>
+                                    )}
+                                  </div>
+                                  
+                                  <div>
+                                    <Label htmlFor="cvv">CVV</Label>
+                                    <Input 
+                                      id="cvv"
+                                      placeholder="123"
+                                      {...register("cvv", { required: paymentMethod === 'card' })}
+                                      className={errors.cvv ? "border-red-500" : ""}
+                                    />
+                                    {errors.cvv && (
+                                      <p className="text-red-500 text-xs mt-1">CVV is required</p>
+                                    )}
+                                  </div>
+                                </div>
+                                
+                                <div>
+                                  <Label htmlFor="cardName">Name on Card</Label>
+                                  <Input 
+                                    id="cardName"
+                                    placeholder="John Doe"
+                                    {...register("cardName", { required: paymentMethod === 'card' })}
+                                    className={errors.cardName ? "border-red-500" : ""}
+                                  />
+                                  {errors.cardName && (
+                                    <p className="text-red-500 text-xs mt-1">Name on card is required</p>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className={`border rounded-md p-4 ${paymentMethod === 'transfer' ? 'border-fud-green' : ''}`}>
+                            <div className="flex items-center space-x-2">
+                              <input 
+                                type="radio" 
+                                id="bankTransfer" 
+                                name="paymentMethod" 
+                                value="transfer"
+                                checked={paymentMethod === 'transfer'}
+                                onChange={() => setPaymentMethod('transfer')}
+                              />
+                              <Label htmlFor="bankTransfer" className="flex items-center">
+                                <Building className="mr-2 h-4 w-4" />
+                                Bank Transfer
+                              </Label>
+                            </div>
+                            
+                            {paymentMethod === 'transfer' && (
+                              <div className="mt-4 space-y-4">
+                                <div className="bg-gray-50 p-4 rounded-md">
+                                  <h4 className="font-medium mb-2">Bank Transfer Details</h4>
+                                  <p className="text-sm mb-1"><strong>Bank:</strong> FUD Alumni Bank</p>
+                                  <p className="text-sm mb-1"><strong>Account Number:</strong> 0123456789</p>
+                                  <p className="text-sm mb-1"><strong>Account Name:</strong> FUD Alumni Association</p>
+                                  <p className="text-sm mb-1"><strong>Reference:</strong> Alumni-{Math.floor(Math.random() * 100000)}</p>
+                                </div>
+                                
+                                <div>
+                                  <Label htmlFor="transferRef">Enter Transfer Reference</Label>
+                                  <Input 
+                                    id="transferRef"
+                                    placeholder="Enter the reference used for your transfer"
+                                    {...register("transferRef", { required: paymentMethod === 'transfer' })}
+                                    className={errors.transferRef ? "border-red-500" : ""}
+                                  />
+                                  {errors.transferRef && (
+                                    <p className="text-red-500 text-xs mt-1">Transfer reference is required</p>
                                   )}
                                 </div>
                                 
                                 <div>
-                                  <Label htmlFor="cvv">CVV</Label>
+                                  <Label htmlFor="transferDate">Date of Transfer</Label>
                                   <Input 
-                                    id="cvv"
-                                    placeholder="123"
-                                    {...register("cvv", { required: true })}
-                                    className={errors.cvv ? "border-red-500" : ""}
+                                    id="transferDate"
+                                    type="date"
+                                    {...register("transferDate", { required: paymentMethod === 'transfer' })}
+                                    className={errors.transferDate ? "border-red-500" : ""}
                                   />
-                                  {errors.cvv && (
-                                    <p className="text-red-500 text-xs mt-1">CVV is required</p>
+                                  {errors.transferDate && (
+                                    <p className="text-red-500 text-xs mt-1">Transfer date is required</p>
                                   )}
                                 </div>
                               </div>
-                              
-                              <div>
-                                <Label htmlFor="cardName">Name on Card</Label>
-                                <Input 
-                                  id="cardName"
-                                  placeholder="John Doe"
-                                  {...register("cardName", { required: true })}
-                                  className={errors.cardName ? "border-red-500" : ""}
-                                />
-                                {errors.cardName && (
-                                  <p className="text-red-500 text-xs mt-1">Name on card is required</p>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="border rounded-md p-4 opacity-50">
-                            <div className="flex items-center space-x-2">
-                              <input type="radio" id="bankTransfer" name="paymentMethod" value="transfer" disabled />
-                              <Label htmlFor="bankTransfer">Bank Transfer</Label>
-                            </div>
-                            <p className="text-xs text-gray-500 mt-2">This option is currently unavailable</p>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -240,16 +284,16 @@ const PaymentsPage = () => {
                     <div className="space-y-4">
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600">Annual Dues (2023)</span>
-                        <span className="font-medium">₦5,000</span>
+                        <span className="font-medium">₦2,500</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600">Processing Fee</span>
-                        <span className="font-medium">₦100</span>
+                        <span className="font-medium">₦0</span>
                       </div>
                       <Separator />
                       <div className="flex justify-between items-center font-bold">
                         <span>Total</span>
-                        <span>₦5,100</span>
+                        <span>₦2,500</span>
                       </div>
                     </div>
                   </CardContent>
@@ -325,47 +369,6 @@ const PaymentsPage = () => {
                 </div>
               </CardContent>
             </Card>
-            
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card>
-                <CardHeader className="bg-fud-green text-white">
-                  <div className="flex items-center">
-                    <Receipt className="h-5 w-5 mr-2" />
-                    <CardTitle>Total Payments</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-4 text-center">
-                  <div className="text-3xl font-bold mb-2">₦25,000</div>
-                  <p className="text-sm text-gray-500">Lifetime contribution</p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="bg-fud-green text-white">
-                  <div className="flex items-center">
-                    <Calendar className="h-5 w-5 mr-2" />
-                    <CardTitle>Payment Status</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-4 text-center">
-                  <div className="text-lg font-bold mb-2 text-green-500">Up to date</div>
-                  <p className="text-sm text-gray-500">Annual dues paid for 2023</p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="bg-fud-green text-white">
-                  <div className="flex items-center">
-                    <CreditCard className="h-5 w-5 mr-2" />
-                    <CardTitle>Next Payment</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-4 text-center">
-                  <div className="text-lg font-bold mb-2">January 15, 2024</div>
-                  <p className="text-sm text-gray-500">Annual dues for 2024</p>
-                </CardContent>
-              </Card>
-            </div>
           </TabsContent>
         </Tabs>
       </div>

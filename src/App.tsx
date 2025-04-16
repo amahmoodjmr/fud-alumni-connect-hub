@@ -22,9 +22,10 @@ import AlumniDashboard from "./pages/alumni/Dashboard";
 import Gallery from "./pages/alumni/Gallery";
 
 // Protected Route Component
-const ProtectedRoute = ({ children, adminOnly = false }) => {
+const ProtectedRoute = ({ children, adminOnly = false, requireCompleteProfile = false }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isProfileComplete, setIsProfileComplete] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -34,13 +35,24 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
       if (session) {
         const { data: profileData, error } = await supabase
           .from('profiles')
-          .select('is_admin')
+          .select('is_admin, first_name, last_name, faculty, department, profile_image_url')
           .eq('id', session.user.id)
           .single();
 
         if (profileData) {
           setIsAuthenticated(true);
           setIsAdmin(profileData.is_admin);
+          
+          // Check if profile is complete based on required fields
+          const isComplete = Boolean(
+            profileData.first_name && 
+            profileData.last_name && 
+            profileData.faculty && 
+            profileData.department && 
+            profileData.profile_image_url
+          );
+          
+          setIsProfileComplete(isComplete);
         }
       }
 
@@ -66,6 +78,11 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
 
   if (adminOnly && !isAdmin) {
     return <Navigate to="/alumni/dashboard" replace />;
+  }
+
+  // Redirect to profile completion if profile is not complete
+  if (requireCompleteProfile && !isProfileComplete && !location.pathname.includes("/alumni/profile")) {
+    return <Navigate to="/alumni/profile" replace />;
   }
 
   return <>{children}</>;
@@ -94,7 +111,7 @@ function App() {
             <Route 
               path="/alumni/dashboard" 
               element={
-                <ProtectedRoute>
+                <ProtectedRoute requireCompleteProfile={true}>
                   <AlumniDashboard />
                 </ProtectedRoute>
               } 
@@ -110,7 +127,7 @@ function App() {
             <Route 
               path="/alumni/directory" 
               element={
-                <ProtectedRoute>
+                <ProtectedRoute requireCompleteProfile={true}>
                   <AlumniDirectory />
                 </ProtectedRoute>
               } 
@@ -118,7 +135,7 @@ function App() {
             <Route 
               path="/alumni/payments" 
               element={
-                <ProtectedRoute>
+                <ProtectedRoute requireCompleteProfile={true}>
                   <PaymentsPage />
                 </ProtectedRoute>
               } 
@@ -126,7 +143,7 @@ function App() {
             <Route 
               path="/alumni/gallery" 
               element={
-                <ProtectedRoute>
+                <ProtectedRoute requireCompleteProfile={true}>
                   <Gallery />
                 </ProtectedRoute>
               } 

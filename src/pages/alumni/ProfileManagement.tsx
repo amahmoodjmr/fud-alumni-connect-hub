@@ -60,14 +60,16 @@ const ProfileManagement = () => {
           });
           
           // Check if profile has required fields
-          setProfileComplete(Boolean(
+          const hasRequiredFields = Boolean(
             data.first_name && data.last_name && 
-            data.phone && data.faculty && 
-            data.department && data.profile_image_url
-          ));
+            data.faculty && data.department && 
+            data.profile_image_url
+          );
+          
+          setProfileComplete(hasRequiredFields);
           
           // Check if this is a new user (no data besides name)
-          if (data.first_name && data.last_name && !data.phone && !data.faculty) {
+          if (data.first_name && data.last_name && !data.faculty) {
             setIsNewUser(true);
           } else {
             setIsNewUser(false);
@@ -122,6 +124,20 @@ const ProfileManagement = () => {
       
       setImageUrl(data.publicUrl);
       toast.success('Profile picture uploaded successfully');
+
+      // Check if profile is now complete
+      if (isNewUser) {
+        const formData = watch();
+        const isProfileComplete = Boolean(
+          formData.first_name && formData.last_name && 
+          formData.faculty && formData.department && 
+          data.publicUrl
+        );
+
+        if (isProfileComplete) {
+          setProfileComplete(true);
+        }
+      }
     } catch (error) {
       console.error('Error uploading image:', error);
       toast.error('Failed to upload profile picture');
@@ -159,36 +175,22 @@ const ProfileManagement = () => {
       // Set profile complete status
       const isComplete = Boolean(
         data.first_name && data.last_name && 
-        data.phone && data.faculty && 
-        data.department && imageUrl
+        data.faculty && data.department && 
+        imageUrl
       );
       
       setProfileComplete(isComplete);
       setIsNewUser(false);
       
-      // If this was a new user completing their profile, redirect to dashboard
+      // If this was a new user completing their profile, redirect to payment page
       if (isNewUser && isComplete) {
-        setTimeout(() => navigate('/alumni/dashboard'), 1500);
+        setTimeout(() => navigate('/alumni/payments'), 1500);
       }
     } catch (error) {
       console.error('Error updating profile:', error);
       toast.error('Failed to update profile');
     } finally {
       setIsLoading(false);
-    }
-  };
-  
-  // Handle payment
-  const handlePayment = async () => {
-    try {
-      toast.info('Redirecting to payment gateway...');
-      // Here would be your payment gateway integration
-      // For now, we'll just show a success message
-      setTimeout(() => {
-        toast.success('Payment processed successfully!');
-      }, 2000);
-    } catch (error) {
-      toast.error('Payment failed. Please try again.');
     }
   };
 
@@ -201,7 +203,7 @@ const ProfileManagement = () => {
           {isNewUser && (
             <div className="bg-yellow-50 border border-yellow-200 p-2 rounded-md flex items-center">
               <AlertTriangle className="h-5 w-5 text-yellow-500 mr-2" />
-              <span className="text-sm text-yellow-700">Please complete your profile</span>
+              <span className="text-sm text-yellow-700">Please complete your profile before proceeding</span>
             </div>
           )}
         </div>
@@ -231,26 +233,10 @@ const ProfileManagement = () => {
                       disabled={uploadingImage}
                     />
                   </div>
+                  {!imageUrl && isNewUser && (
+                    <p className="text-red-500 text-xs mt-1">Profile picture is required</p>
+                  )}
                 </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="mt-6">
-              <CardHeader>
-                <CardTitle>Payment Due</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center mb-4">
-                  <p className="text-2xl font-bold">₦2,500</p>
-                  <p className="text-sm text-gray-500">Annual Alumni Dues</p>
-                </div>
-                <Button 
-                  onClick={handlePayment}
-                  className="w-full bg-fud-green hover:bg-fud-green-dark"
-                >
-                  <CreditCard className="h-4 w-4 mr-2" />
-                  Pay Now
-                </Button>
               </CardContent>
             </Card>
           </div>
@@ -425,7 +411,7 @@ const ProfileManagement = () => {
                   ) : (
                     <>
                       <Check className="h-4 w-4 mr-2" />
-                      Save Changes
+                      {isNewUser ? 'Complete Profile & Continue' : 'Save Changes'}
                     </>
                   )}
                 </Button>

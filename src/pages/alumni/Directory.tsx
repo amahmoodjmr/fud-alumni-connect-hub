@@ -1,131 +1,81 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Search } from 'lucide-react';
-
-// Sample data for alumni
-const alumniData = [
-  {
-    id: 1,
-    name: 'Amina Ibrahim',
-    department: 'Computer Science',
-    graduationYear: 2020,
-    faculty: 'Science',
-    location: 'Kano',
-    email: 'amina.ibrahim@example.com',
-    profileImage: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.0.3'
-  },
-  {
-    id: 2,
-    name: 'Mohammed Ali',
-    department: 'Economics',
-    graduationYear: 2019,
-    faculty: 'Social Sciences',
-    location: 'Abuja',
-    email: 'mohammed.ali@example.com',
-    profileImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.0.3'
-  },
-  {
-    id: 3,
-    name: 'John Okafor',
-    department: 'Biochemistry',
-    graduationYear: 2018,
-    faculty: 'Science',
-    location: 'Lagos',
-    email: 'john.okafor@example.com',
-    profileImage: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.0.3'
-  },
-  {
-    id: 4,
-    name: 'Fatima Bello',
-    department: 'Law',
-    graduationYear: 2021,
-    faculty: 'Law',
-    location: 'Kaduna',
-    email: 'fatima.bello@example.com',
-    profileImage: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.0.3'
-  },
-  {
-    id: 5,
-    name: 'David Adekoya',
-    department: 'Mechanical Engineering',
-    graduationYear: 2017,
-    faculty: 'Engineering',
-    location: 'Port Harcourt',
-    email: 'david.adekoya@example.com',
-    profileImage: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.0.3'
-  },
-  {
-    id: 6,
-    name: 'Zainab Usman',
-    department: 'Medicine',
-    graduationYear: 2016,
-    faculty: 'Medicine',
-    location: 'Kano',
-    email: 'zainab.usman@example.com',
-    profileImage: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.0.3'
-  }
-];
-
-// Sample data for departments
-const departments = [
-  'All Departments',
-  'Computer Science',
-  'Economics',
-  'Biochemistry',
-  'Law',
-  'Mechanical Engineering',
-  'Medicine'
-];
-
-// Sample data for faculties
-const faculties = [
-  'All Faculties',
-  'Science',
-  'Social Sciences',
-  'Law',
-  'Engineering',
-  'Medicine'
-];
-
-// Sample data for graduation years
-const graduationYears = [
-  'All Years',
-  '2016',
-  '2017',
-  '2018',
-  '2019',
-  '2020',
-  '2021'
-];
+import { Search, Loader2 } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const AlumniDirectory = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('All Departments');
   const [selectedFaculty, setSelectedFaculty] = useState('All Faculties');
   const [selectedYear, setSelectedYear] = useState('All Years');
+  const [loading, setLoading] = useState(true);
+  const [alumni, setAlumni] = useState([]);
+  const [departments, setDepartments] = useState(['All Departments']);
+  const [faculties, setFaculties] = useState(['All Faculties']);
+  const [graduationYears, setGraduationYears] = useState(['All Years']);
+
+  // Fetch alumni data from Supabase
+  useEffect(() => {
+    const fetchAlumniData = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .order('last_name', { ascending: true });
+          
+        if (error) throw error;
+        
+        setAlumni(data || []);
+        
+        // Extract unique departments, faculties, and graduation years for filters
+        if (data && data.length > 0) {
+          const uniqueDepartments = ['All Departments', ...new Set(data.map(a => a.department).filter(Boolean))];
+          const uniqueFaculties = ['All Faculties', ...new Set(data.map(a => a.faculty).filter(Boolean))];
+          const uniqueYears = ['All Years', ...new Set(data.map(a => a.graduation_year).filter(Boolean).map(String))];
+          
+          setDepartments(uniqueDepartments);
+          setFaculties(uniqueFaculties);
+          setGraduationYears(uniqueYears);
+        }
+      } catch (error) {
+        console.error('Error fetching alumni data:', error);
+        toast.error('Failed to load alumni directory');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchAlumniData();
+  }, []);
 
   // Filter alumni based on search and filters
-  const filteredAlumni = alumniData.filter(alumni => {
+  const filteredAlumni = alumni.filter(alumnus => {
+    const fullName = `${alumnus.first_name} ${alumnus.last_name}`.toLowerCase();
+    const email = alumnus.email?.toLowerCase() || '';
+    
     // Filter by search query
-    const matchesSearch = alumni.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         alumni.email.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = fullName.includes(searchQuery.toLowerCase()) || 
+                         email.includes(searchQuery.toLowerCase());
     
     // Filter by department
     const matchesDepartment = selectedDepartment === 'All Departments' || 
-                             alumni.department === selectedDepartment;
+                             alumnus.department === selectedDepartment;
     
     // Filter by faculty
     const matchesFaculty = selectedFaculty === 'All Faculties' || 
-                          alumni.faculty === selectedFaculty;
+                          alumnus.faculty === selectedFaculty;
     
     // Filter by graduation year
     const matchesYear = selectedYear === 'All Years' || 
-                       alumni.graduationYear.toString() === selectedYear;
+                       (alumnus.graduation_year && alumnus.graduation_year.toString() === selectedYear);
     
     return matchesSearch && matchesDepartment && matchesFaculty && matchesYear;
   });
@@ -200,47 +150,52 @@ const AlumniDirectory = () => {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredAlumni.length > 0 ? (
-            filteredAlumni.map(alumni => (
-              <Card key={alumni.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                <div className="p-4 flex items-start space-x-4">
-                  <div className="flex-shrink-0">
-                    <img 
-                      src={alumni.profileImage} 
-                      alt={alumni.name} 
-                      className="w-16 h-16 rounded-full object-cover"
-                    />
-                  </div>
-                  <div className="flex-grow">
-                    <h3 className="font-medium text-lg">{alumni.name}</h3>
-                    <p className="text-sm text-gray-600">
-                      {alumni.department}, {alumni.graduationYear}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Faculty of {alumni.faculty}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {alumni.location}
-                    </p>
-                    <div className="mt-2">
-                      <a 
-                        href={`mailto:${alumni.email}`} 
-                        className="text-sm text-fud-green hover:underline"
-                      >
-                        {alumni.email}
-                      </a>
+        {loading ? (
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-fud-green" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredAlumni.length > 0 ? (
+              filteredAlumni.map(alumnus => (
+                <Card key={alumnus.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                  <div className="p-4 flex items-start space-x-4">
+                    <div className="flex-shrink-0">
+                      <Avatar className="w-16 h-16 rounded-full object-cover">
+                        <AvatarImage src={alumnus.profile_image_url} alt={`${alumnus.first_name} ${alumnus.last_name}`} />
+                        <AvatarFallback>{alumnus.first_name?.[0]}{alumnus.last_name?.[0]}</AvatarFallback>
+                      </Avatar>
+                    </div>
+                    <div className="flex-grow">
+                      <h3 className="font-medium text-lg">{alumnus.first_name} {alumnus.last_name}</h3>
+                      <p className="text-sm text-gray-600">
+                        {alumnus.department}, {alumnus.graduation_year || 'N/A'}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        Faculty of {alumnus.faculty || 'N/A'}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {alumnus.state || 'N/A'}
+                      </p>
+                      <div className="mt-2">
+                        <a 
+                          href={`mailto:${alumnus.email}`} 
+                          className="text-sm text-fud-green hover:underline"
+                        >
+                          {alumnus.email}
+                        </a>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Card>
-            ))
-          ) : (
-            <div className="col-span-3 text-center py-8">
-              <p className="text-gray-500">No alumni found matching your criteria.</p>
-            </div>
-          )}
-        </div>
+                </Card>
+              ))
+            ) : (
+              <div className="col-span-3 text-center py-8">
+                <p className="text-gray-500">No alumni found matching your criteria.</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </Layout>
   );
