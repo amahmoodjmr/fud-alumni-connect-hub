@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
@@ -25,13 +24,11 @@ const ProfileManagement = () => {
   const { register, handleSubmit, setValue, formState: { errors }, watch } = useForm();
   const navigate = useNavigate();
 
-  // Check if user is logged in & get profile data
   useEffect(() => {
     const fetchUserData = async () => {
       setIsLoading(true);
       
       try {
-        // Get current user
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!session?.user) {
@@ -39,7 +36,6 @@ const ProfileManagement = () => {
           return;
         }
         
-        // Get user profile data
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
@@ -48,10 +44,8 @@ const ProfileManagement = () => {
           
         if (error) throw error;
         
-        // Set user data
         setUserData(data);
         
-        // Pre-fill form values
         if (data) {
           Object.entries(data).forEach(([key, value]) => {
             if (value !== null) {
@@ -59,7 +53,6 @@ const ProfileManagement = () => {
             }
           });
           
-          // Check if profile has required fields
           const hasRequiredFields = Boolean(
             data.first_name && data.last_name && 
             data.faculty && data.department && 
@@ -68,14 +61,12 @@ const ProfileManagement = () => {
           
           setProfileComplete(hasRequiredFields);
           
-          // Check if this is a new user (no data besides name)
           if (data.first_name && data.last_name && !data.faculty) {
             setIsNewUser(true);
           } else {
             setIsNewUser(false);
           }
           
-          // Set image URL if available
           if (data.profile_image_url) {
             setImageUrl(data.profile_image_url);
           }
@@ -91,30 +82,39 @@ const ProfileManagement = () => {
     fetchUserData();
   }, [navigate, setValue]);
   
-  // Upload profile picture
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
       if (!event.target.files || event.target.files.length === 0) {
         return;
       }
 
-      setUploadingImage(true);
       const file = event.target.files[0];
+      
+      const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+      if (!allowedTypes.includes(file.type)) {
+        toast.error('Only PNG and JPEG files are allowed');
+        return;
+      }
+
+      const maxSizeBytes = 500 * 1024;
+      if (file.size > maxSizeBytes) {
+        toast.error('File size must not exceed 500KB');
+        return;
+      }
+
+      setUploadingImage(true);
       const fileExt = file.name.split('.').pop();
       const fileName = `${userData.id}-${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `${fileName}`;
       
-      // Upload image to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(filePath, file);
         
       if (uploadError) throw uploadError;
       
-      // Get the public URL
       const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
       
-      // Update user profile with new image URL
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ profile_image_url: data.publicUrl })
@@ -125,7 +125,6 @@ const ProfileManagement = () => {
       setImageUrl(data.publicUrl);
       toast.success('Profile picture uploaded successfully');
 
-      // Check if profile is now complete
       if (isNewUser) {
         const formData = watch();
         const isProfileComplete = Boolean(
@@ -146,12 +145,10 @@ const ProfileManagement = () => {
     }
   };
   
-  // Handle form submission
   const onSubmit = async (data) => {
     setIsLoading(true);
     
     try {
-      // Get current user
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session?.user) {
@@ -159,7 +156,6 @@ const ProfileManagement = () => {
         return;
       }
       
-      // Update profile
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -172,7 +168,6 @@ const ProfileManagement = () => {
       
       toast.success('Profile updated successfully');
       
-      // Set profile complete status
       const isComplete = Boolean(
         data.first_name && data.last_name && 
         data.faculty && data.department && 
@@ -182,7 +177,6 @@ const ProfileManagement = () => {
       setProfileComplete(isComplete);
       setIsNewUser(false);
       
-      // If this was a new user completing their profile, redirect to payment page
       if (isNewUser && isComplete) {
         setTimeout(() => navigate('/alumni/payments'), 1500);
       }
