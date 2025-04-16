@@ -28,10 +28,8 @@ const loginSchema = z.object({
 const registerSchema = loginSchema.extend({
   firstName: z.string().min(2, 'First name must be at least 2 characters'),
   lastName: z.string().min(2, 'Last name must be at least 2 characters'),
-  alumniId: z.string().min(3, 'Alumni ID must be at least 3 characters'),
-  graduationYear: z.string().refine((val) => !isNaN(parseInt(val)) && parseInt(val) > 1980, {
-    message: 'Please enter a valid graduation year',
-  }),
+  matriculationNumber: z.string().min(3, 'Matriculation number must be at least 3 characters'),
+  graduationDate: z.string().min(1, 'Graduation date is required'),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -54,7 +52,7 @@ export function AuthForm({ mode, isAdmin = false }: AuthFormProps) {
     resolver: zodResolver(formSchema),
     defaultValues: mode === 'login' 
       ? { email: '', password: '' } 
-      : { email: '', password: '', firstName: '', lastName: '', alumniId: '', graduationYear: '' },
+      : { email: '', password: '', firstName: '', lastName: '', matriculationNumber: '', graduationDate: '' },
   });
 
   // Form submission
@@ -89,9 +87,9 @@ export function AuthForm({ mode, isAdmin = false }: AuthFormProps) {
         navigate(isAdmin ? '/admin/dashboard' : '/alumni/dashboard');
       } else {
         // Registration flow
-        const { email, password, firstName, lastName, alumniId, graduationYear } = data as RegisterFormValues;
+        const { email, password, firstName, lastName, matriculationNumber, graduationDate } = data as RegisterFormValues;
         
-        // Sign up with Supabase
+        // Sign up with Supabase - without email verification
         const { data: authData, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
@@ -99,27 +97,25 @@ export function AuthForm({ mode, isAdmin = false }: AuthFormProps) {
             data: {
               first_name: firstName,
               last_name: lastName,
-              alumni_id: alumniId,
-              graduation_year: parseInt(graduationYear),
-            }
+              matriculation_number: matriculationNumber,
+              graduation_date: graduationDate,
+            },
+            emailRedirectTo: window.location.origin + '/verification'
           }
         });
 
         if (signUpError) throw signUpError;
 
-        // Attempt to sign in immediately after signup instead of redirecting to verification page
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        // Sign in immediately after registration
+        const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
         
-        if (signInError) {
-          toast.success('Registration successful! Please check your email for verification if needed.');
-          navigate('/login');
-        } else {
-          toast.success('Registration and login successful!');
-          navigate('/alumni/dashboard');
-        }
+        if (signInError) throw signInError;
+        
+        toast.success('Registration successful! Please complete your profile.');
+        navigate('/alumni/profile');
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'An error occurred';
@@ -187,12 +183,12 @@ export function AuthForm({ mode, isAdmin = false }: AuthFormProps) {
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="alumniId"
+                  name="matriculationNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Alumni ID</FormLabel>
+                      <FormLabel>Matriculation Number</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter your alumni ID" {...field} />
+                        <Input placeholder="Enter your matriculation number" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -201,12 +197,12 @@ export function AuthForm({ mode, isAdmin = false }: AuthFormProps) {
                 
                 <FormField
                   control={form.control}
-                  name="graduationYear"
+                  name="graduationDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Graduation Year</FormLabel>
+                      <FormLabel>Graduation Date</FormLabel>
                       <FormControl>
-                        <Input placeholder="Year of graduation" {...field} />
+                        <Input type="date" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
