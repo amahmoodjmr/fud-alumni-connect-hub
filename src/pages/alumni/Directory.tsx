@@ -9,6 +9,15 @@ import { Search, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Link } from 'react-router-dom';
 
 const AlumniDirectory = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -20,6 +29,7 @@ const AlumniDirectory = () => {
   const [departments, setDepartments] = useState(['All Departments']);
   const [faculties, setFaculties] = useState(['All Faculties']);
   const [graduationYears, setGraduationYears] = useState(['All Years']);
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
 
   // Fetch alumni data from Supabase
   useEffect(() => {
@@ -87,12 +97,13 @@ const AlumniDirectory = () => {
         
         <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
+            <div className="md:col-span-2 lg:col-span-1">
               <Input
                 placeholder="Search by name or email"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full"
+                startIcon={<Search className="h-4 w-4" />}
               />
             </div>
             
@@ -142,7 +153,25 @@ const AlumniDirectory = () => {
             </div>
           </div>
           
-          <div className="mt-4 flex justify-end">
+          <div className="mt-4 flex justify-between items-center">
+            <div className="flex space-x-2">
+              <Button
+                variant={viewMode === 'grid' ? "default" : "outline"}
+                size="sm"
+                onClick={() => setViewMode('grid')}
+                className={viewMode === 'grid' ? "bg-fud-green hover:bg-fud-green-dark" : ""}
+              >
+                Grid View
+              </Button>
+              <Button
+                variant={viewMode === 'table' ? "default" : "outline"}
+                size="sm"
+                onClick={() => setViewMode('table')}
+                className={viewMode === 'table' ? "bg-fud-green hover:bg-fud-green-dark" : ""}
+              >
+                Table View
+              </Button>
+            </div>
             <Button className="bg-fud-green hover:bg-fud-green-dark">
               <Search className="h-4 w-4 mr-2" />
               Search
@@ -155,46 +184,104 @@ const AlumniDirectory = () => {
             <Loader2 className="h-8 w-8 animate-spin text-fud-green" />
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredAlumni.length > 0 ? (
-              filteredAlumni.map(alumnus => (
-                <Card key={alumnus.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                  <div className="p-4 flex items-start space-x-4">
-                    <div className="flex-shrink-0">
-                      <Avatar className="w-16 h-16 rounded-full object-cover">
-                        <AvatarImage src={alumnus.profile_image_url} alt={`${alumnus.first_name} ${alumnus.last_name}`} />
-                        <AvatarFallback>{alumnus.first_name?.[0]}{alumnus.last_name?.[0]}</AvatarFallback>
-                      </Avatar>
-                    </div>
-                    <div className="flex-grow">
-                      <h3 className="font-medium text-lg">{alumnus.first_name} {alumnus.last_name}</h3>
-                      <p className="text-sm text-gray-600">
-                        {alumnus.department}, {alumnus.graduation_year || 'N/A'}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        Faculty of {alumnus.faculty || 'N/A'}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {alumnus.state || 'N/A'}
-                      </p>
-                      <div className="mt-2">
-                        <a 
-                          href={`mailto:${alumnus.email}`} 
-                          className="text-sm text-fud-green hover:underline"
-                        >
-                          {alumnus.email}
-                        </a>
+          <>
+            {viewMode === 'grid' ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredAlumni.length > 0 ? (
+                  filteredAlumni.map(alumnus => (
+                    <Card key={alumnus.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                      <div className="p-4 flex items-start space-x-4">
+                        <div className="flex-shrink-0">
+                          <Avatar className="w-16 h-16 rounded-full object-cover">
+                            <AvatarImage src={alumnus.profile_image_url} alt={`${alumnus.first_name} ${alumnus.last_name}`} />
+                            <AvatarFallback>{alumnus.first_name?.[0]}{alumnus.last_name?.[0]}</AvatarFallback>
+                          </Avatar>
+                        </div>
+                        <div className="flex-grow">
+                          <h3 className="font-medium text-lg">{alumnus.first_name} {alumnus.last_name}</h3>
+                          <p className="text-sm text-gray-600">
+                            {alumnus.department}, {alumnus.graduation_year || 'N/A'}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            Faculty of {alumnus.faculty || 'N/A'}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {alumnus.state || 'N/A'}
+                          </p>
+                          <div className="mt-2">
+                            <a 
+                              href={`mailto:${alumnus.email}`} 
+                              className="text-sm text-fud-green hover:underline"
+                            >
+                              {alumnus.email}
+                            </a>
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    </Card>
+                  ))
+                ) : (
+                  <div className="col-span-3 text-center py-8">
+                    <p className="text-gray-500">No alumni found matching your criteria.</p>
                   </div>
-                </Card>
-              ))
-            ) : (
-              <div className="col-span-3 text-center py-8">
-                <p className="text-gray-500">No alumni found matching your criteria.</p>
+                )}
               </div>
+            ) : (
+              <Card>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Graduation Year</TableHead>
+                        <TableHead>Department</TableHead>
+                        <TableHead>Faculty</TableHead>
+                        <TableHead>State</TableHead>
+                        <TableHead>Email</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredAlumni.length > 0 ? (
+                        filteredAlumni.map(alumnus => (
+                          <TableRow key={alumnus.id}>
+                            <TableCell className="flex items-center space-x-2">
+                              <Avatar className="w-8 h-8">
+                                <AvatarImage src={alumnus.profile_image_url} />
+                                <AvatarFallback>{alumnus.first_name?.[0]}{alumnus.last_name?.[0]}</AvatarFallback>
+                              </Avatar>
+                              <span>{alumnus.first_name} {alumnus.last_name}</span>
+                            </TableCell>
+                            <TableCell>{alumnus.graduation_year || 'N/A'}</TableCell>
+                            <TableCell>{alumnus.department || 'N/A'}</TableCell>
+                            <TableCell>{alumnus.faculty || 'N/A'}</TableCell>
+                            <TableCell>{alumnus.state || 'N/A'}</TableCell>
+                            <TableCell>
+                              <a href={`mailto:${alumnus.email}`} className="text-fud-green hover:underline">
+                                {alumnus.email}
+                              </a>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center py-6">
+                            No alumni found matching your criteria.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
             )}
-          </div>
+            
+            <div className="mt-6 border-t pt-4 text-center">
+              <p className="text-gray-600 mb-2">Connect with your fellow alumni at our events</p>
+              <Button asChild variant="outline" className="hover:bg-fud-green hover:text-white">
+                <Link to="/events">View Alumni Events</Link>
+              </Button>
+            </div>
+          </>
         )}
       </div>
     </Layout>
