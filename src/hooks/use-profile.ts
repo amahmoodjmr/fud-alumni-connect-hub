@@ -81,6 +81,11 @@ export function useProfile() {
         const date = new Date(data.graduation_date);
         data.graduation_year = date.getFullYear();
       }
+
+      // Remove city field if it exists in the form data but not in the database schema
+      if (data.city) {
+        delete data.city;
+      }
       
       const { error } = await supabase
         .from('profiles')

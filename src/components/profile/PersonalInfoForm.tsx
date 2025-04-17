@@ -23,6 +23,14 @@ const PersonalInfoForm = ({ initialData, onSubmit, isLoading, isNewUser }: Perso
   });
   
   const { register, handleSubmit, setValue, formState: { errors } } = methods;
+
+  const handleFormSubmit = (data: any) => {
+    // Ensure city field is not sent to the backend
+    if (data.city) {
+      delete data.city;
+    }
+    onSubmit(data);
+  };
   
   return (
     <Card>
@@ -31,7 +39,7 @@ const PersonalInfoForm = ({ initialData, onSubmit, isLoading, isNewUser }: Perso
       </CardHeader>
       <CardContent>
         <FormProvider {...methods}>
-          <form id="profileForm" onSubmit={handleSubmit(onSubmit)}>
+          <form id="profileForm" onSubmit={handleSubmit(handleFormSubmit)}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div>
                 <Label htmlFor="first_name">First Name</Label>
@@ -159,15 +167,7 @@ const PersonalInfoForm = ({ initialData, onSubmit, isLoading, isNewUser }: Perso
                   />
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="city">City</Label>
-                    <Input 
-                      id="city"
-                      {...register("city")}
-                    />
-                  </div>
-                  
+                <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
                   <div>
                     <Label htmlFor="state">State</Label>
                     <Input 

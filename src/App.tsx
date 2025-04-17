@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -124,27 +123,16 @@ function App() {
                 </ProtectedRoute>
               } 
             />
-            <Route 
-              path="/alumni/directory" 
-              element={
-                <ProtectedRoute requireCompleteProfile={true}>
-                  <AlumniDirectory />
-                </ProtectedRoute>
-              } 
-            />
+            
+            {/* Public Alumni Routes - Making these publicly accessible */}
+            <Route path="/alumni/directory" element={<AlumniDirectory />} />
+            <Route path="/alumni/gallery" element={<Gallery />} />
+            
             <Route 
               path="/alumni/payments" 
               element={
                 <ProtectedRoute requireCompleteProfile={true}>
                   <PaymentsPage />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/alumni/gallery" 
-              element={
-                <ProtectedRoute requireCompleteProfile={true}>
-                  <Gallery />
                 </ProtectedRoute>
               } 
             />
