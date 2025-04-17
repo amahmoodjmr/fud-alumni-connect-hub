@@ -57,9 +57,9 @@ export function useProfile() {
           setImageUrl(data.profile_image_url);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching profile data:', error);
-      toast.error('Failed to load profile data');
+      toast.error('Failed to load profile data: ' + (error.message || error));
     } finally {
       setIsLoading(false);
     }
@@ -74,6 +74,12 @@ export function useProfile() {
       if (!session?.user) {
         navigate('/login');
         return;
+      }
+      
+      // If there's a graduation_date, convert it to graduation_year
+      if (data.graduation_date) {
+        const date = new Date(data.graduation_date);
+        data.graduation_year = date.getFullYear();
       }
       
       const { error } = await supabase
@@ -103,9 +109,9 @@ export function useProfile() {
       
       // Refresh user data
       fetchUserData();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating profile:', error);
-      toast.error('Failed to update profile');
+      toast.error('Failed to update profile: ' + (error.message || error));
     } finally {
       setIsLoading(false);
     }
@@ -123,6 +129,7 @@ export function useProfile() {
     isNewUser,
     userData,
     updateProfile,
-    handleImageUploaded
+    handleImageUploaded,
+    fetchUserData
   };
 }

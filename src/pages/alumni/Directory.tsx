@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/layout/Layout';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Search, Loader2 } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Search, Loader2, Grid, List } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { AlumniCard } from '@/components/alumni/AlumniCard';
+import { AlumniFilter } from '@/components/alumni/AlumniFilter';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
@@ -17,77 +18,71 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Link } from 'react-router-dom';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const AlumniDirectory = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedDepartment, setSelectedDepartment] = useState('All Departments');
-  const [selectedFaculty, setSelectedFaculty] = useState('All Faculties');
-  const [selectedYear, setSelectedYear] = useState('All Years');
   const [loading, setLoading] = useState(true);
-  const [alumni, setAlumni] = useState([]);
-  const [departments, setDepartments] = useState(['All Departments']);
-  const [faculties, setFaculties] = useState(['All Faculties']);
-  const [graduationYears, setGraduationYears] = useState(['All Years']);
+  const [alumni, setAlumni] = useState<any[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState({
+    name: '',
+    faculty: null,
+    department: null,
+    graduationYear: null
+  });
 
   // Fetch alumni data from Supabase
   useEffect(() => {
-    const fetchAlumniData = async () => {
-      try {
-        setLoading(true);
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .order('last_name', { ascending: true });
-          
-        if (error) throw error;
-        
-        setAlumni(data || []);
-        
-        // Extract unique departments, faculties, and graduation years for filters
-        if (data && data.length > 0) {
-          const uniqueDepartments = ['All Departments', ...new Set(data.map(a => a.department).filter(Boolean))];
-          const uniqueFaculties = ['All Faculties', ...new Set(data.map(a => a.faculty).filter(Boolean))];
-          const uniqueYears = ['All Years', ...new Set(data.map(a => a.graduation_year).filter(Boolean).map(String))];
-          
-          setDepartments(uniqueDepartments);
-          setFaculties(uniqueFaculties);
-          setGraduationYears(uniqueYears);
-        }
-      } catch (error) {
-        console.error('Error fetching alumni data:', error);
-        toast.error('Failed to load alumni directory');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
     fetchAlumniData();
   }, []);
 
+  const fetchAlumniData = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('last_name', { ascending: true });
+        
+      if (error) throw error;
+      
+      setAlumni(data || []);
+    } catch (error) {
+      console.error('Error fetching alumni data:', error);
+      toast.error('Failed to load alumni directory');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFilterChange = (newFilters: any) => {
+    setFilters(newFilters);
+  };
+
   // Filter alumni based on search and filters
   const filteredAlumni = alumni.filter(alumnus => {
-    const fullName = `${alumnus.first_name} ${alumnus.last_name}`.toLowerCase();
-    const email = alumnus.email?.toLowerCase() || '';
+    const fullName = `${alumnus.first_name || ''} ${alumnus.last_name || ''}`.toLowerCase();
+    const searchLower = searchTerm.toLowerCase();
     
-    // Filter by search query
-    const matchesSearch = fullName.includes(searchQuery.toLowerCase()) || 
-                         email.includes(searchQuery.toLowerCase());
-    
-    // Filter by department
-    const matchesDepartment = selectedDepartment === 'All Departments' || 
-                             alumnus.department === selectedDepartment;
+    // Filter by search term
+    const matchesSearch = searchTerm === '' || 
+                        fullName.includes(searchLower) || 
+                        (alumnus.email && alumnus.email.toLowerCase().includes(searchLower));
     
     // Filter by faculty
-    const matchesFaculty = selectedFaculty === 'All Faculties' || 
-                          alumnus.faculty === selectedFaculty;
+    const matchesFaculty = !filters.faculty || 
+                          alumnus.faculty === filters.faculty;
+    
+    // Filter by department
+    const matchesDepartment = !filters.department || 
+                            alumnus.department === filters.department;
     
     // Filter by graduation year
-    const matchesYear = selectedYear === 'All Years' || 
-                       (alumnus.graduation_year && alumnus.graduation_year.toString() === selectedYear);
+    const matchesYear = !filters.graduationYear || 
+                      (alumnus.graduation_year && alumnus.graduation_year.toString() === filters.graduationYear);
     
-    return matchesSearch && matchesDepartment && matchesFaculty && matchesYear;
+    return matchesSearch && matchesFaculty && matchesDepartment && matchesYear;
   });
 
   return (
@@ -95,65 +90,20 @@ const AlumniDirectory = () => {
       <div className="container mx-auto py-8">
         <h1 className="text-2xl font-bold mb-6">Alumni Directory</h1>
         
+        <AlumniFilter onFilterChange={handleFilterChange} />
+        
         <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="md:col-span-2 lg:col-span-1">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1 relative">
               <Input
                 placeholder="Search by name or email"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full"
                 startIcon={<Search className="h-4 w-4" />}
               />
             </div>
             
-            <div>
-              <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Department" />
-                </SelectTrigger>
-                <SelectContent>
-                  {departments.map((dept, index) => (
-                    <SelectItem key={index} value={dept}>
-                      {dept}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <Select value={selectedFaculty} onValueChange={setSelectedFaculty}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Faculty" />
-                </SelectTrigger>
-                <SelectContent>
-                  {faculties.map((faculty, index) => (
-                    <SelectItem key={index} value={faculty}>
-                      {faculty}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <Select value={selectedYear} onValueChange={setSelectedYear}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Graduation Year" />
-                </SelectTrigger>
-                <SelectContent>
-                  {graduationYears.map((year, index) => (
-                    <SelectItem key={index} value={year}>
-                      {year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          
-          <div className="mt-4 flex justify-between items-center">
             <div className="flex space-x-2">
               <Button
                 variant={viewMode === 'grid' ? "default" : "outline"}
@@ -161,6 +111,7 @@ const AlumniDirectory = () => {
                 onClick={() => setViewMode('grid')}
                 className={viewMode === 'grid' ? "bg-fud-green hover:bg-fud-green-dark" : ""}
               >
+                <Grid className="h-4 w-4 mr-1" />
                 Grid View
               </Button>
               <Button
@@ -169,13 +120,10 @@ const AlumniDirectory = () => {
                 onClick={() => setViewMode('table')}
                 className={viewMode === 'table' ? "bg-fud-green hover:bg-fud-green-dark" : ""}
               >
+                <List className="h-4 w-4 mr-1" />
                 Table View
               </Button>
             </div>
-            <Button className="bg-fud-green hover:bg-fud-green-dark">
-              <Search className="h-4 w-4 mr-2" />
-              Search
-            </Button>
           </div>
         </div>
         
@@ -189,36 +137,17 @@ const AlumniDirectory = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredAlumni.length > 0 ? (
                   filteredAlumni.map(alumnus => (
-                    <Card key={alumnus.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                      <div className="p-4 flex items-start space-x-4">
-                        <div className="flex-shrink-0">
-                          <Avatar className="w-16 h-16 rounded-full object-cover">
-                            <AvatarImage src={alumnus.profile_image_url} alt={`${alumnus.first_name} ${alumnus.last_name}`} />
-                            <AvatarFallback>{alumnus.first_name?.[0]}{alumnus.last_name?.[0]}</AvatarFallback>
-                          </Avatar>
-                        </div>
-                        <div className="flex-grow">
-                          <h3 className="font-medium text-lg">{alumnus.first_name} {alumnus.last_name}</h3>
-                          <p className="text-sm text-gray-600">
-                            {alumnus.department}, {alumnus.graduation_year || 'N/A'}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            Faculty of {alumnus.faculty || 'N/A'}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            {alumnus.state || 'N/A'}
-                          </p>
-                          <div className="mt-2">
-                            <a 
-                              href={`mailto:${alumnus.email}`} 
-                              className="text-sm text-fud-green hover:underline"
-                            >
-                              {alumnus.email}
-                            </a>
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
+                    <AlumniCard
+                      key={alumnus.id}
+                      id={alumnus.id}
+                      firstName={alumnus.first_name || ''}
+                      lastName={alumnus.last_name || ''}
+                      imageUrl={alumnus.profile_image_url}
+                      graduationYear={alumnus.graduation_year || 'N/A'}
+                      department={alumnus.department || 'N/A'}
+                      faculty={alumnus.faculty || 'N/A'}
+                      location={alumnus.state || ''}
+                    />
                   ))
                 ) : (
                   <div className="col-span-3 text-center py-8">
@@ -228,50 +157,48 @@ const AlumniDirectory = () => {
               </div>
             ) : (
               <Card>
-                <CardContent className="p-0">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Graduation Year</TableHead>
-                        <TableHead>Department</TableHead>
-                        <TableHead>Faculty</TableHead>
-                        <TableHead>State</TableHead>
-                        <TableHead>Email</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredAlumni.length > 0 ? (
-                        filteredAlumni.map(alumnus => (
-                          <TableRow key={alumnus.id}>
-                            <TableCell className="flex items-center space-x-2">
-                              <Avatar className="w-8 h-8">
-                                <AvatarImage src={alumnus.profile_image_url} />
-                                <AvatarFallback>{alumnus.first_name?.[0]}{alumnus.last_name?.[0]}</AvatarFallback>
-                              </Avatar>
-                              <span>{alumnus.first_name} {alumnus.last_name}</span>
-                            </TableCell>
-                            <TableCell>{alumnus.graduation_year || 'N/A'}</TableCell>
-                            <TableCell>{alumnus.department || 'N/A'}</TableCell>
-                            <TableCell>{alumnus.faculty || 'N/A'}</TableCell>
-                            <TableCell>{alumnus.state || 'N/A'}</TableCell>
-                            <TableCell>
-                              <a href={`mailto:${alumnus.email}`} className="text-fud-green hover:underline">
-                                {alumnus.email}
-                              </a>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      ) : (
-                        <TableRow>
-                          <TableCell colSpan={6} className="text-center py-6">
-                            No alumni found matching your criteria.
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Graduation Year</TableHead>
+                      <TableHead>Department</TableHead>
+                      <TableHead>Faculty</TableHead>
+                      <TableHead>State</TableHead>
+                      <TableHead>Email</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredAlumni.length > 0 ? (
+                      filteredAlumni.map(alumnus => (
+                        <TableRow key={alumnus.id}>
+                          <TableCell className="flex items-center space-x-2">
+                            <Avatar className="w-8 h-8">
+                              <AvatarImage src={alumnus.profile_image_url} />
+                              <AvatarFallback>{alumnus.first_name?.[0]}{alumnus.last_name?.[0]}</AvatarFallback>
+                            </Avatar>
+                            <span>{alumnus.first_name} {alumnus.last_name}</span>
+                          </TableCell>
+                          <TableCell>{alumnus.graduation_year || 'N/A'}</TableCell>
+                          <TableCell>{alumnus.department || 'N/A'}</TableCell>
+                          <TableCell>{alumnus.faculty || 'N/A'}</TableCell>
+                          <TableCell>{alumnus.state || 'N/A'}</TableCell>
+                          <TableCell>
+                            <a href={`mailto:${alumnus.email}`} className="text-fud-green hover:underline">
+                              {alumnus.email}
+                            </a>
                           </TableCell>
                         </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </CardContent>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-6">
+                          No alumni found matching your criteria.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
               </Card>
             )}
             

@@ -1,10 +1,11 @@
 
 import React, { useState } from 'react';
 import { toast } from 'sonner';
-import { UserRound } from 'lucide-react';
+import { UserRound, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 
 interface ProfileImageUploaderProps {
@@ -21,6 +22,7 @@ const ProfileImageUploader = ({
   isRequired = false
 }: ProfileImageUploaderProps) => {
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
@@ -29,27 +31,51 @@ const ProfileImageUploader = ({
       }
 
       const file = event.target.files[0];
-      
+      setSelectedFile(file);
+    } catch (error) {
+      console.error('Error selecting file:', error);
+    }
+  };
+
+  const uploadImage = async () => {
+    if (!selectedFile) {
+      toast.error('Please select a file to upload');
+      return;
+    }
+
+    try {
       const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
-      if (!allowedTypes.includes(file.type)) {
+      if (!allowedTypes.includes(selectedFile.type)) {
         toast.error('Only PNG and JPEG files are allowed');
         return;
       }
 
       const maxSizeBytes = 500 * 1024;
-      if (file.size > maxSizeBytes) {
+      if (selectedFile.size > maxSizeBytes) {
         toast.error('File size must not exceed 500KB');
         return;
       }
 
       setUploadingImage(true);
-      const fileExt = file.name.split('.').pop();
+
+      // Create avatars bucket if it doesn't exist
+      try {
+        // Try to get bucket to check if it exists
+        await supabase.storage.getBucket('avatars');
+      } catch (error) {
+        // If bucket doesn't exist, create it
+        await supabase.storage.createBucket('avatars', {
+          public: true,
+        });
+      }
+
+      const fileExt = selectedFile.name.split('.').pop();
       const fileName = `${userId}-${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `${fileName}`;
       
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file);
+        .upload(filePath, selectedFile);
         
       if (uploadError) throw uploadError;
       
@@ -64,9 +90,10 @@ const ProfileImageUploader = ({
       
       onImageUploaded(data.publicUrl);
       toast.success('Profile picture uploaded successfully');
-    } catch (error) {
+      setSelectedFile(null);
+    } catch (error: any) {
       console.error('Error uploading image:', error);
-      toast.error('Failed to upload profile picture');
+      toast.error('Failed to upload profile picture: ' + (error.message || error));
     } finally {
       setUploadingImage(false);
     }
@@ -83,7 +110,7 @@ const ProfileImageUploader = ({
       
       <div className="w-full">
         <Label htmlFor="picture" className="mb-2 block">Upload new picture</Label>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-2">
           <Input 
             id="picture" 
             type="file" 
@@ -91,6 +118,22 @@ const ProfileImageUploader = ({
             onChange={handleImageUpload}
             disabled={uploadingImage}
           />
+          {selectedFile && (
+            <Button 
+              onClick={uploadImage}
+              disabled={uploadingImage}
+              className="mt-2"
+            >
+              {uploadingImage ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                'Upload Image'
+              )}
+            </Button>
+          )}
         </div>
         {!imageUrl && isRequired && (
           <p className="text-red-500 text-xs mt-1">Profile picture is required</p>
