@@ -76,13 +76,15 @@ export function useProfile() {
         return;
       }
       
-      // If there's a graduation_date, convert it to graduation_year
+      // Handle graduation_date conversion to graduation_year
       if (data.graduation_date) {
         const date = new Date(data.graduation_date);
         data.graduation_year = date.getFullYear();
+        // Remove graduation_date as it doesn't exist in the database schema
+        delete data.graduation_date;
       }
 
-      // Remove city field if it exists in the form data but not in the database schema
+      // Remove any fields that don't exist in the database schema
       if (data.city) {
         delete data.city;
       }

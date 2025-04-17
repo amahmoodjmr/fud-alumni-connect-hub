@@ -25,10 +25,6 @@ const PersonalInfoForm = ({ initialData, onSubmit, isLoading, isNewUser }: Perso
   const { register, handleSubmit, setValue, formState: { errors } } = methods;
 
   const handleFormSubmit = (data: any) => {
-    // Ensure city field is not sent to the backend
-    if (data.city) {
-      delete data.city;
-    }
     onSubmit(data);
   };
   
@@ -167,14 +163,12 @@ const PersonalInfoForm = ({ initialData, onSubmit, isLoading, isNewUser }: Perso
                   />
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
-                  <div>
-                    <Label htmlFor="state">State</Label>
-                    <Input 
-                      id="state"
-                      {...register("state")}
-                    />
-                  </div>
+                <div>
+                  <Label htmlFor="state">State</Label>
+                  <Input 
+                    id="state"
+                    {...register("state")}
+                  />
                 </div>
               </div>
             </div>
