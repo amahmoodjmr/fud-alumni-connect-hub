@@ -107,17 +107,15 @@ const PersonalInfoForm = ({ initialData, onSubmit, isLoading, isNewUser }: Perso
               <h3 className="text-lg font-medium mb-4">Academic Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="matriculation_number">Matriculation Number</Label>
+                  <Label htmlFor="alumni_id">Alumni ID</Label>
                   <Input 
-                    id="matriculation_number"
-                    {...register("matriculation_number", { required: true })}
-                    className={errors.matriculation_number ? "border-red-500" : ""}
+                    id="alumni_id"
+                    {...register("alumni_id")}
                   />
-                  {errors.matriculation_number && <p className="text-red-500 text-sm mt-1">Matriculation Number is required</p>}
                 </div>
                 
                 <div>
-                  <Label htmlFor="graduation_date">Graduation Date</Label>
+                  <Label htmlFor="graduation_date">Graduation Year</Label>
                   <Input 
                     id="graduation_date"
                     type="date"

@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,6 +12,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/auth/AuthPage";
 import AdminDashboard from "./pages/admin/Dashboard";
+import AdminPanel from "./pages/admin/AdminPanel";
 import ProfileManagement from "./pages/alumni/ProfileManagement";
 import AlumniDirectory from "./pages/alumni/Directory";
 import EventsPage from "./pages/events/EventsPage";
@@ -143,6 +145,14 @@ function App() {
               element={
                 <ProtectedRoute adminOnly={true}>
                   <AdminDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/panel" 
+              element={
+                <ProtectedRoute adminOnly={true}>
+                  <AdminPanel />
                 </ProtectedRoute>
               } 
             />

@@ -76,18 +76,21 @@ export function useProfile() {
         return;
       }
       
+      // Clean up data to match database schema
       // Handle graduation_date conversion to graduation_year
       if (data.graduation_date) {
         const date = new Date(data.graduation_date);
         data.graduation_year = date.getFullYear();
-        // Remove graduation_date as it doesn't exist in the database schema
         delete data.graduation_date;
       }
-
-      // Remove any fields that don't exist in the database schema
-      if (data.city) {
-        delete data.city;
-      }
+      
+      // Remove fields that don't exist in the profiles table schema
+      const fieldsToRemove = ['city', 'matriculation_number'];
+      fieldsToRemove.forEach(field => {
+        if (field in data) {
+          delete data[field];
+        }
+      });
       
       const { error } = await supabase
         .from('profiles')

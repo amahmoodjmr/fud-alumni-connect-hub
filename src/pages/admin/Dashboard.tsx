@@ -1,14 +1,24 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Calendar, FileText, BarChart } from 'lucide-react';
+import { Users, Calendar, FileText, BarChart, Cog, Settings } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const AdminDashboard = () => {
   return (
     <Layout>
       <div className="container mx-auto py-8">
-        <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+          <Link to="/admin/panel">
+            <Button className="bg-fud-green hover:bg-fud-green-dark">
+              <Settings className="h-4 w-4 mr-2" />
+              Administration Panel
+            </Button>
+          </Link>
+        </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <Card>
@@ -136,15 +146,21 @@ const AdminDashboard = () => {
               <CardTitle>Administrative Actions</CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <button className="p-4 bg-fud-green text-white rounded-lg hover:bg-fud-green-dark">
-                Manage Alumni
-              </button>
-              <button className="p-4 bg-fud-green text-white rounded-lg hover:bg-fud-green-dark">
-                Manage Events
-              </button>
-              <button className="p-4 bg-fud-green text-white rounded-lg hover:bg-fud-green-dark">
-                Manage News
-              </button>
+              <Link to="/admin/panel?tab=alumni">
+                <Button className="w-full p-4 bg-fud-green text-white rounded-lg hover:bg-fud-green-dark">
+                  Manage Alumni
+                </Button>
+              </Link>
+              <Link to="/admin/panel?tab=events">
+                <Button className="w-full p-4 bg-fud-green text-white rounded-lg hover:bg-fud-green-dark">
+                  Manage Events
+                </Button>
+              </Link>
+              <Link to="/admin/panel?tab=news">
+                <Button className="w-full p-4 bg-fud-green text-white rounded-lg hover:bg-fud-green-dark">
+                  Manage News
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         </div>
