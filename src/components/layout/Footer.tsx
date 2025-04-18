@@ -1,21 +1,8 @@
-
 import { Link } from 'react-router-dom';
-import { 
-  Facebook, 
-  Twitter, 
-  Instagram, 
-  Linkedin, 
-  GraduationCap, 
-  Mail, 
-  Phone, 
-  MapPin 
-} from 'lucide-react';
-
+import { Facebook, Twitter, Instagram, Linkedin, GraduationCap, Mail, Phone, MapPin } from 'lucide-react';
 const Footer = () => {
   const currentYear = new Date().getFullYear();
-  
-  return (
-    <footer className="bg-fud-green-900 text-white">
+  return <footer className="bg-fud-green-900 text-white">
       {/* Main Footer Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -95,14 +82,10 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/payments" className="text-gray-300 hover:text-white transition-colors text-sm">
-                  Make Payments
-                </Link>
+                <Link to="/payments" className="text-gray-300 hover:text-white transition-colors text-sm"></Link>
               </li>
               <li>
-                <Link to="/profile" className="text-gray-300 hover:text-white transition-colors text-sm">
-                  Update Profile
-                </Link>
+                <Link to="/profile" className="text-gray-300 hover:text-white transition-colors text-sm"></Link>
               </li>
             </ul>
           </div>
@@ -154,8 +137,6 @@ const Footer = () => {
           </div>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 };
-
 export default Footer;
