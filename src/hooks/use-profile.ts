@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -77,7 +76,6 @@ export function useProfile() {
       }
       
       // Clean up data to match database schema
-      // Handle graduation_date conversion to graduation_year
       if (data.graduation_date) {
         const date = new Date(data.graduation_date);
         data.graduation_year = date.getFullYear();
@@ -113,9 +111,8 @@ export function useProfile() {
       setProfileComplete(isComplete);
       setIsNewUser(false);
       
-      if (isNewUser && isComplete) {
-        setTimeout(() => navigate('/alumni/payments'), 1500);
-      }
+      // Always navigate to dashboard after successful update
+      setTimeout(() => navigate('/alumni/dashboard'), 1500);
       
       // Refresh user data
       fetchUserData();

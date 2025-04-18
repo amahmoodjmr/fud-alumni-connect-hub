@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,7 @@ import {
   LogIn,
   LogOut,
   GraduationCap,
+  ShieldCheck
 } from 'lucide-react';
 
 import {
@@ -144,8 +144,15 @@ const Navbar = () => {
                   </Link>
                 </Button>
                 
-                <Button asChild className="bg-fud-green hover:bg-fud-green-dark">
+                <Button asChild className="bg-fud-green hover:bg-fud-green-dark mr-2">
                   <Link to="/register">Register</Link>
+                </Button>
+
+                <Button variant="outline" asChild>
+                  <Link to="/admin/login">
+                    <ShieldCheck className="h-5 w-5 mr-1" />
+                    <span>Admin</span>
+                  </Link>
                 </Button>
               </>
             ) : (
