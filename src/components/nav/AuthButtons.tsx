@@ -20,7 +20,7 @@ export const AuthButtons = () => {
       <Button variant="outline" asChild>
         <Link to="/admin/login">
           <ShieldCheck className="h-5 w-5 mr-1" />
-          <span>Admin</span>
+          Admin Login
         </Link>
       </Button>
     </>
