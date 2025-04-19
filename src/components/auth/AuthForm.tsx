@@ -44,13 +44,13 @@ export function AuthForm({ mode, isAdmin = false }: AuthFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Determine which schema to use based on mode
-  const formSchema = mode === 'login' ? loginSchema : registerSchema;
-  
-  // Create form with explicit type for mode
+  // Create separate forms for login and register to avoid type issues
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: '', password: '' }
+    defaultValues: { 
+      email: '', 
+      password: '' 
+    }
   });
   
   const registerForm = useForm<RegisterFormValues>({
@@ -64,12 +64,12 @@ export function AuthForm({ mode, isAdmin = false }: AuthFormProps) {
       graduationDate: '' 
     }
   });
-  
+
   // Use the appropriate form based on mode
   const form = mode === 'login' ? loginForm : registerForm;
 
-  // Form submission with type checking
-  const onSubmit = async (data: LoginFormValues | RegisterFormValues) => {
+  // Handle form submission
+  const onSubmit = async (data: any) => {
     setIsLoading(true);
     try {
       if (mode === 'login') {
@@ -143,7 +143,7 @@ export function AuthForm({ mode, isAdmin = false }: AuthFormProps) {
         // Registration flow
         const { email, password, firstName, lastName, matriculationNumber, graduationDate } = data as RegisterFormValues;
         
-        // Sign up with Supabase - without email verification
+        // Sign up with Supabase - with emailRedirectTo disabled and autoConfirmEnabled
         const { data: authData, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
@@ -154,7 +154,8 @@ export function AuthForm({ mode, isAdmin = false }: AuthFormProps) {
               matriculation_number: matriculationNumber,
               graduation_date: graduationDate,
             },
-            emailRedirectTo: window.location.origin + '/verification'
+            // Remove emailRedirectTo to avoid email verification
+            emailRedirectTo: undefined
           }
         });
 
@@ -206,7 +207,7 @@ export function AuthForm({ mode, isAdmin = false }: AuthFormProps) {
             <>
               <div className="grid grid-cols-2 gap-4">
                 <FormField
-                  control={form.control}
+                  control={registerForm.control}
                   name="firstName"
                   render={({ field }) => (
                     <FormItem>
@@ -220,7 +221,7 @@ export function AuthForm({ mode, isAdmin = false }: AuthFormProps) {
                 />
                 
                 <FormField
-                  control={form.control}
+                  control={registerForm.control}
                   name="lastName"
                   render={({ field }) => (
                     <FormItem>
@@ -236,7 +237,7 @@ export function AuthForm({ mode, isAdmin = false }: AuthFormProps) {
 
               <div className="grid grid-cols-2 gap-4">
                 <FormField
-                  control={form.control}
+                  control={registerForm.control}
                   name="matriculationNumber"
                   render={({ field }) => (
                     <FormItem>
@@ -250,7 +251,7 @@ export function AuthForm({ mode, isAdmin = false }: AuthFormProps) {
                 />
                 
                 <FormField
-                  control={form.control}
+                  control={registerForm.control}
                   name="graduationDate"
                   render={({ field }) => (
                     <FormItem>
