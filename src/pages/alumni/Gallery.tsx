@@ -19,7 +19,7 @@ const Gallery = () => {
   const galleryImages = [
     {
       id: '1',
-      url: '/public/lovable-uploads/0c5df63f-c62d-49c6-a874-a09c7852fd49.png',
+      url: '/lovable-uploads/0c5df63f-c62d-49c6-a874-a09c7852fd49.png',
       title: 'FUD Main Gate',
       description: 'The iconic main entrance of Federal University Dutse, symbolizing the gateway to knowledge and excellence.',
       category: 'Campus Infrastructure',
@@ -27,7 +27,7 @@ const Gallery = () => {
     },
     {
       id: '2',
-      url: '/public/lovable-uploads/f6608933-175d-4b83-85df-9c30fdd157fc.png',
+      url: '/lovable-uploads/f6608933-175d-4b83-85df-9c30fdd157fc.png',
       title: 'FUD Entrance View',
       description: "A scenic view of the FUD main gate surrounded by lush greenery, showcasing the university's beautiful landscape.",
       category: 'Campus Infrastructure',
@@ -35,7 +35,7 @@ const Gallery = () => {
     },
     {
       id: '3',
-      url: '/public/lovable-uploads/2499a905-e8f4-457d-9c3d-667a023433ac.png',
+      url: '/lovable-uploads/2499a905-e8f4-457d-9c3d-667a023433ac.png',
       title: 'FUD Official Logo',
       description: 'The official emblem of Federal University Dutse, featuring symbolic elements representing knowledge, excellence, and service.',
       category: 'University Identity',
@@ -43,7 +43,7 @@ const Gallery = () => {
     },
     {
       id: '4',
-      url: '/public/lovable-uploads/03a3efe5-76fc-4927-85be-7174003e7b18.png',
+      url: '/lovable-uploads/03a3efe5-76fc-4927-85be-7174003e7b18.png',
       title: 'Historic Gate Photo',
       description: 'A historic black and white photograph of the FUD entrance, showcasing the architectural heritage of the institution.',
       category: 'Historic Photos',
@@ -51,7 +51,7 @@ const Gallery = () => {
     },
     {
       id: '5',
-      url: '/public/lovable-uploads/f98db8c5-0b31-4257-befc-b76edf9cd761.png',
+      url: '/lovable-uploads/f98db8c5-0b31-4257-befc-b76edf9cd761.png',
       title: 'NCC Partnership Logo',
       description: 'Nigerian Communications Commission logo, representing strong partnerships with national regulatory bodies.',
       category: 'Partnerships',
@@ -59,7 +59,7 @@ const Gallery = () => {
     },
     {
       id: '6',
-      url: '/public/lovable-uploads/05eb44f8-2a84-4384-bd67-65934f88b33b.png',
+      url: '/lovable-uploads/05eb44f8-2a84-4384-bd67-65934f88b33b.png',
       title: 'Vice Chancellor Portrait',
       description: 'Prof. Abdulkarim Sabo Mohammed, the Vice Chancellor of Federal University Dutse.',
       category: 'Leadership',
@@ -67,7 +67,7 @@ const Gallery = () => {
     },
     {
       id: '7',
-      url: '/public/lovable-uploads/5db2d627-5478-4636-ad4f-2f1bd4b0e0a9.png',
+      url: '/lovable-uploads/5db2d627-5478-4636-ad4f-2f1bd4b0e0a9.png',
       title: 'Vice Chancellor Address',
       description: 'The Vice Chancellor delivering an address during an important university function.',
       category: 'Events',
@@ -75,7 +75,7 @@ const Gallery = () => {
     },
     {
       id: '8',
-      url: '/public/lovable-uploads/5606a8aa-3b2a-4de4-90ec-decf951fdba1.png',
+      url: '/lovable-uploads/5606a8aa-3b2a-4de4-90ec-decf951fdba1.png',
       title: 'Graduation Ceremony',
       description: 'A panoramic view of FUD graduates during a convocation ceremony, representing academic achievement.',
       category: 'Events',
@@ -83,7 +83,7 @@ const Gallery = () => {
     },
     {
       id: '9',
-      url: '/public/lovable-uploads/3fd6d745-1d3e-4611-bed1-d6c536b12660.png',
+      url: '/lovable-uploads/3fd6d745-1d3e-4611-bed1-d6c536b12660.png',
       title: 'University Library',
       description: 'The Federal University Dutse Library, a center for learning and research excellence.',
       category: 'Campus Infrastructure',

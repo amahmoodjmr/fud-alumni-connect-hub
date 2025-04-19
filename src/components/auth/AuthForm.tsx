@@ -61,6 +61,47 @@ export function AuthForm({ mode, isAdmin = false }: AuthFormProps) {
     try {
       if (mode === 'login') {
         const { email, password } = data as LoginFormValues;
+        
+        // Hard-coded admin credentials check
+        if (isAdmin && email === 'admin' && password === '12345678') {
+          // Create admin user if it doesn't exist
+          const { data: existingUser, error: checkError } = await supabase
+            .from('profiles')
+            .select()
+            .eq('email', 'admin@fud.edu.ng')
+            .single();
+            
+          if (!existingUser && !checkError) {
+            // Create admin user
+            const { data: authData, error: signUpError } = await supabase.auth.signUp({
+              email: 'admin@fud.edu.ng', 
+              password: '12345678',
+            });
+            
+            if (!signUpError && authData?.user) {
+              // Set admin role
+              await supabase.from('profiles').update({
+                first_name: 'Admin',
+                last_name: 'User',
+                is_admin: true
+              }).eq('id', authData.user.id);
+            }
+          }
+          
+          // Sign in with the admin credentials
+          const { error: signInError } = await supabase.auth.signInWithPassword({
+            email: 'admin@fud.edu.ng',
+            password: '12345678',
+          });
+          
+          if (signInError) throw signInError;
+          
+          toast.success('Admin login successful!');
+          navigate('/admin/dashboard');
+          return;
+        }
+        
+        // Regular login flow
         const { data: authData, error } = await supabase.auth.signInWithPassword({
           email,
           password,
