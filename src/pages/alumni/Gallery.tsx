@@ -29,7 +29,7 @@ const Gallery = () => {
       id: '2',
       url: '/public/lovable-uploads/f6608933-175d-4b83-85df-9c30fdd157fc.png',
       title: 'FUD Entrance View',
-      description: 'A scenic view of the FUD main gate surrounded by lush greenery, showcasing the university's beautiful landscape.',
+      description: "A scenic view of the FUD main gate surrounded by lush greenery, showcasing the university's beautiful landscape.",
       category: 'Campus Infrastructure',
       date: '2024'
     },
