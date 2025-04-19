@@ -47,15 +47,28 @@ export function AuthForm({ mode, isAdmin = false }: AuthFormProps) {
   // Determine which schema to use based on mode
   const formSchema = mode === 'login' ? loginSchema : registerSchema;
   
-  // Create form
-  const form = useForm<LoginFormValues | RegisterFormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: mode === 'login' 
-      ? { email: '', password: '' } 
-      : { email: '', password: '', firstName: '', lastName: '', matriculationNumber: '', graduationDate: '' },
+  // Create form with explicit type for mode
+  const loginForm = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: '', password: '' }
   });
+  
+  const registerForm = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: { 
+      email: '', 
+      password: '', 
+      firstName: '', 
+      lastName: '', 
+      matriculationNumber: '', 
+      graduationDate: '' 
+    }
+  });
+  
+  // Use the appropriate form based on mode
+  const form = mode === 'login' ? loginForm : registerForm;
 
-  // Form submission
+  // Form submission with type checking
   const onSubmit = async (data: LoginFormValues | RegisterFormValues) => {
     setIsLoading(true);
     try {
