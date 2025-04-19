@@ -68,109 +68,117 @@ export function AuthForm({ mode, isAdmin = false }: AuthFormProps) {
   // Use the appropriate form based on mode
   const form = mode === 'login' ? loginForm : registerForm;
 
-  // Handle form submission
+  // Handle form submission - use explicit function to avoid excessive type nesting
+  async function handleLoginSubmit(data: LoginFormValues) {
+    const { email, password } = data;
+    
+    // Hard-coded admin credentials check
+    if (isAdmin && email === 'admin' && password === '12345678') {
+      // Create admin user if it doesn't exist
+      const { data: existingUser, error: checkError } = await supabase
+        .from('profiles')
+        .select()
+        .eq('email', 'admin@fud.edu.ng')
+        .single();
+        
+      if (!existingUser && !checkError) {
+        // Create admin user
+        const { data: authData, error: signUpError } = await supabase.auth.signUp({
+          email: 'admin@fud.edu.ng', 
+          password: '12345678',
+        });
+        
+        if (!signUpError && authData?.user) {
+          // Set admin role
+          await supabase.from('profiles').update({
+            first_name: 'Admin',
+            last_name: 'User',
+            is_admin: true
+          }).eq('id', authData.user.id);
+        }
+      }
+      
+      // Sign in with the admin credentials
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: 'admin@fud.edu.ng',
+        password: '12345678',
+      });
+      
+      if (signInError) throw signInError;
+      
+      toast.success('Admin login successful!');
+      navigate('/admin/dashboard');
+      return;
+    }
+    
+    // Regular login flow
+    const { data: authData, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) throw error;
+
+    // Check if user is an admin
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', authData.user?.id)
+      .single();
+
+    if (profileError) throw profileError;
+
+    // Redirect based on admin status
+    if (isAdmin && !profileData.is_admin) {
+      await supabase.auth.signOut();
+      throw new Error('Access denied. Admin authentication required.');
+    }
+
+    toast.success('Login successful!');
+    navigate(isAdmin ? '/admin/dashboard' : '/alumni/dashboard');
+  }
+
+  async function handleRegisterSubmit(data: RegisterFormValues) {
+    const { email, password, firstName, lastName, matriculationNumber, graduationDate } = data;
+    
+    // Sign up with Supabase - with autoConfirm enabled
+    const { data: authData, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          first_name: firstName,
+          last_name: lastName,
+          matriculation_number: matriculationNumber,
+          graduation_date: graduationDate,
+        },
+        // Skip email verification completely
+        emailRedirectTo: undefined
+      }
+    });
+
+    if (signUpError) throw signUpError;
+
+    // Sign in immediately after registration
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    
+    if (signInError) throw signInError;
+    
+    toast.success('Registration successful! Please complete your profile.');
+    navigate('/alumni/profile');
+  }
+
+  // Main form submission handler that delegates to specific functions
   const onSubmit = async (data: any) => {
     setIsLoading(true);
     try {
       if (mode === 'login') {
-        const { email, password } = data as LoginFormValues;
-        
-        // Hard-coded admin credentials check
-        if (isAdmin && email === 'admin' && password === '12345678') {
-          // Create admin user if it doesn't exist
-          const { data: existingUser, error: checkError } = await supabase
-            .from('profiles')
-            .select()
-            .eq('email', 'admin@fud.edu.ng')
-            .single();
-            
-          if (!existingUser && !checkError) {
-            // Create admin user
-            const { data: authData, error: signUpError } = await supabase.auth.signUp({
-              email: 'admin@fud.edu.ng', 
-              password: '12345678',
-            });
-            
-            if (!signUpError && authData?.user) {
-              // Set admin role
-              await supabase.from('profiles').update({
-                first_name: 'Admin',
-                last_name: 'User',
-                is_admin: true
-              }).eq('id', authData.user.id);
-            }
-          }
-          
-          // Sign in with the admin credentials
-          const { error: signInError } = await supabase.auth.signInWithPassword({
-            email: 'admin@fud.edu.ng',
-            password: '12345678',
-          });
-          
-          if (signInError) throw signInError;
-          
-          toast.success('Admin login successful!');
-          navigate('/admin/dashboard');
-          return;
-        }
-        
-        // Regular login flow
-        const { data: authData, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (error) throw error;
-
-        // Check if user is an admin
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('is_admin')
-          .eq('id', authData.user?.id)
-          .single();
-
-        if (profileError) throw profileError;
-
-        // Redirect based on admin status
-        if (isAdmin && !profileData.is_admin) {
-          await supabase.auth.signOut();
-          throw new Error('Access denied. Admin authentication required.');
-        }
-
-        toast.success('Login successful!');
-        navigate(isAdmin ? '/admin/dashboard' : '/alumni/dashboard');
+        await handleLoginSubmit(data as LoginFormValues);
       } else {
-        // Registration flow
-        const { email, password, firstName, lastName, matriculationNumber, graduationDate } = data as RegisterFormValues;
-        
-        // Sign up with Supabase - with emailRedirectTo disabled and autoConfirmEnabled
-        const { data: authData, error: signUpError } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              first_name: firstName,
-              last_name: lastName,
-              matriculation_number: matriculationNumber,
-              graduation_date: graduationDate,
-            },
-            // Remove emailRedirectTo to avoid email verification
-            emailRedirectTo: undefined
-          }
-        });
-
-        if (signUpError) throw signUpError;
-
-        // Sign in immediately after registration
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        
-        if (signInError) throw signInError;
-        
-        toast.success('Registration successful! Please complete your profile.');
-        navigate('/alumni/profile');
+        await handleRegisterSubmit(data as RegisterFormValues);
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'An error occurred';
