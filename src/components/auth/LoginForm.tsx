@@ -18,11 +18,13 @@ import { Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+// Explicitly define the schema outside of the component
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
+// Explicitly define the type for form values
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 interface LoginFormProps {
@@ -33,6 +35,7 @@ export function LoginForm({ isAdmin = false }: LoginFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
+  // Explicitly provide the type to useForm
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: { 
@@ -41,7 +44,8 @@ export function LoginForm({ isAdmin = false }: LoginFormProps) {
     }
   });
 
-  async function handleSubmit(data: LoginFormValues) {
+  // Define the form submission handler with explicit typing
+  const handleSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
     try {
       const { email, password } = data;
@@ -113,7 +117,7 @@ export function LoginForm({ isAdmin = false }: LoginFormProps) {
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   return (
     <Form {...form}>
