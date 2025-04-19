@@ -60,22 +60,15 @@ export function RegisterForm() {
             matriculation_number: matriculationNumber,
             graduation_date: graduationDate,
           },
-          emailRedirectTo: undefined
+          emailRedirectTo: window.location.origin // Add proper redirect URL
         }
       });
 
       if (signUpError) throw signUpError;
-
-      // Sign in immediately after registration
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
       
-      if (signInError) throw signInError;
-      
-      toast.success('Registration successful! Please complete your profile.');
-      navigate('/alumni/profile');
+      // Instead of trying to sign in immediately, redirect to verification page
+      toast.success('Registration successful! Please check your email to verify your account.');
+      navigate('/verification');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'An error occurred';
       toast.error(errorMessage);

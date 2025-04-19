@@ -18,13 +18,13 @@ import { Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-// Explicitly define the schema outside of the component
+// Define schema outside component
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
-// Explicitly define the type for form values
+// Define form values type explicitly
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 interface LoginFormProps {
@@ -44,8 +44,8 @@ export function LoginForm({ isAdmin = false }: LoginFormProps) {
     }
   });
 
-  // Define the form submission handler with explicit typing
-  const handleSubmit = async (data: LoginFormValues) => {
+  // Define submission handler separately to avoid deep type instantiation
+  const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
     try {
       const { email, password } = data;
@@ -121,7 +121,7 @@ export function LoginForm({ isAdmin = false }: LoginFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="email"
