@@ -45,8 +45,8 @@ export function LoginForm({ isAdmin = false }: LoginFormProps) {
     try {
       const { email, password } = formData;
       
-      // Handle admin login
-      if (isAdmin && email === 'admin' && password === '12345678') {
+      // Handle admin login with updated password
+      if (isAdmin && email === 'admin' && password === 'Admin@123') {
         const { data: existingUser, error: checkError } = await supabase
           .from('profiles')
           .select()
@@ -56,7 +56,7 @@ export function LoginForm({ isAdmin = false }: LoginFormProps) {
         if (!existingUser && !checkError) {
           const { data: authData, error: signUpError } = await supabase.auth.signUp({
             email: 'admin@fud.edu.ng', 
-            password: '12345678',
+            password: 'Admin@123',
           });
           
           if (!signUpError && authData?.user) {
@@ -70,7 +70,7 @@ export function LoginForm({ isAdmin = false }: LoginFormProps) {
         
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email: 'admin@fud.edu.ng',
-          password: '12345678',
+          password: 'Admin@123',
         });
         
         if (signInError) throw signInError;
