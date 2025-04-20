@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { z } from 'zod';
@@ -82,33 +81,7 @@ export function LoginForm({ isAdmin = false }: LoginFormProps) {
           }
           
           toast.success('Admin login successful!');
-          navigate('/admin/dashboard');
-          return;
-        } else {
-          // For non-default admin credentials, check if user has admin privileges
-          const { data: authData, error } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-          });
-
-          if (error) throw error;
-
-          // Check if user is an admin
-          const { data: profileData, error: profileError } = await supabase
-            .from('profiles')
-            .select('is_admin')
-            .eq('id', authData.user?.id)
-            .maybeSingle();
-
-          if (profileError) throw profileError;
-
-          if (!profileData?.is_admin) {
-            await supabase.auth.signOut();
-            throw new Error('Access denied. Admin authentication required.');
-          }
-
-          toast.success('Admin login successful!');
-          navigate('/admin/dashboard');
+          navigate('/admin/panel');
           return;
         }
       }
@@ -137,7 +110,7 @@ export function LoginForm({ isAdmin = false }: LoginFormProps) {
       }
 
       toast.success('Login successful!');
-      navigate(isAdmin ? '/admin/dashboard' : '/alumni/dashboard');
+      navigate(isAdmin ? '/admin/panel' : '/alumni/dashboard');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'An error occurred';
       toast.error(errorMessage);

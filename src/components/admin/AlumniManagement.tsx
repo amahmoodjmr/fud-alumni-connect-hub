@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Users, Trash2, UserX, Search } from 'lucide-react';
 import { toast } from 'sonner';
@@ -154,7 +153,7 @@ const AlumniManagement = () => {
                   <TableCell>{alum.graduation_year || '-'}</TableCell>
                   <TableCell>
                     <Button size="sm" variant="destructive" onClick={() => handleDelete(alum.id)}>
-                      <UserX className="h-4 w-4" />
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </TableCell>
                 </TableRow>
