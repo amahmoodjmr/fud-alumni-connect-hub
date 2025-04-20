@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { z } from 'zod';
@@ -45,7 +46,7 @@ export function LoginForm({ isAdmin = false }: LoginFormProps) {
     try {
       const { email, password } = formData;
       
-      // Handle admin login
+      // Handle admin login specifically
       if (isAdmin) {
         // Check if this is our default admin credentials
         if (email === 'admin@fud.edu.ng' && password === 'Admin@123') {
@@ -94,23 +95,33 @@ export function LoginForm({ isAdmin = false }: LoginFormProps) {
 
       if (error) throw error;
 
-      // Check if user is an admin
+      // Check if user is an admin - use select('*') to avoid TypeScript error
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('is_admin')
+        .select('*')
         .eq('id', authData.user?.id)
-        .maybeSingle();
+        .single();
 
       if (profileError) throw profileError;
 
       // Redirect based on admin status
-      if (isAdmin && !profileData?.is_admin) {
-        await supabase.auth.signOut();
-        throw new Error('Access denied. Admin authentication required.');
+      if (isAdmin) {
+        // If trying to access admin page but not an admin, sign out and show error
+        if (!profileData?.is_admin) {
+          await supabase.auth.signOut();
+          throw new Error('Access denied. Admin authentication required.');
+        }
+        
+        // If admin login successful, go to admin panel
+        toast.success('Admin login successful!');
+        navigate('/admin/panel');
+        return;
       }
-
+      
+      // Regular user login - go to alumni dashboard
       toast.success('Login successful!');
-      navigate(isAdmin ? '/admin/panel' : '/alumni/dashboard');
+      navigate('/alumni/dashboard');
+      
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'An error occurred';
       toast.error(errorMessage);

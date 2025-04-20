@@ -28,42 +28,50 @@ const ProtectedRoute = ({ children, adminOnly = false, requireCompleteProfile = 
   const [isAdmin, setIsAdmin] = useState(false);
   const [isProfileComplete, setIsProfileComplete] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session) {
-        const { data: profileData, error } = await supabase
-          .from('profiles')
-          .select('is_admin, first_name, last_name, faculty, department, profile_image_url')
-          .eq('id', session.user.id)
-          .single();
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          const { data: profileData, error } = await supabase
+            .from('profiles')
+            .select('is_admin, first_name, last_name, faculty, department, profile_image_url')
+            .eq('id', session.user.id)
+            .single();
 
-        if (profileData) {
-          setIsAuthenticated(true);
-          setIsAdmin(profileData.is_admin);
-          
-          // Check if profile is complete based on required fields
-          const isComplete = Boolean(
-            profileData.first_name && 
-            profileData.last_name && 
-            profileData.faculty && 
-            profileData.department && 
-            profileData.profile_image_url
-          );
-          
-          setIsProfileComplete(isComplete);
+          if (profileData) {
+            setIsAuthenticated(true);
+            setIsAdmin(profileData.is_admin);
+            
+            // Check if profile is complete based on required fields
+            const isComplete = Boolean(
+              profileData.first_name && 
+              profileData.last_name && 
+              profileData.faculty && 
+              profileData.department && 
+              profileData.profile_image_url
+            );
+            
+            setIsProfileComplete(isComplete);
+          }
         }
+      } catch (error) {
+        console.error('Auth check error:', error);
+      } finally {
+        setIsLoading(false);
+        setHasCheckedAuth(true);
       }
-
-      setIsLoading(false);
     };
 
     checkAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      checkAuth();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+        checkAuth();
+      }
     });
 
     return () => {
@@ -73,16 +81,16 @@ const ProtectedRoute = ({ children, adminOnly = false, requireCompleteProfile = 
 
   if (isLoading) return null; // Or a loading spinner
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && hasCheckedAuth) {
     return <Navigate to="/login" replace />;
   }
 
-  if (adminOnly && !isAdmin) {
+  if (adminOnly && !isAdmin && hasCheckedAuth) {
     return <Navigate to="/alumni/dashboard" replace />;
   }
 
-  // Redirect to profile completion if profile is not complete
-  if (requireCompleteProfile && !isProfileComplete && !location.pathname.includes("/alumni/profile")) {
+  // Redirect to profile completion if profile is not complete and not an admin
+  if (requireCompleteProfile && !isProfileComplete && !isAdmin && hasCheckedAuth) {
     return <Navigate to="/alumni/profile" replace />;
   }
 
