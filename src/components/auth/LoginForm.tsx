@@ -46,40 +46,71 @@ export function LoginForm({ isAdmin = false }: LoginFormProps) {
     try {
       const { email, password } = formData;
       
-      // Handle admin login with updated password
-      if (isAdmin && email === 'admin' && password === 'Admin@123') {
-        // Fix the type issue by providing explicit type for the select operation
-        const { data: existingUser, error: checkError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('email', 'admin@fud.edu.ng')
-          .single();
-          
-        if (!existingUser && !checkError) {
-          const { data: authData, error: signUpError } = await supabase.auth.signUp({
-            email: 'admin@fud.edu.ng', 
+      // Handle admin login
+      if (isAdmin) {
+        // Check if this is our default admin credentials
+        if (email === 'admin@fud.edu.ng' && password === 'Admin@123') {
+          // Sign in with admin credentials
+          const { error: signInError } = await supabase.auth.signInWithPassword({
+            email: 'admin@fud.edu.ng',
             password: 'Admin@123',
           });
           
-          if (!signUpError && authData?.user) {
-            await supabase.from('profiles').update({
-              first_name: 'Admin',
-              last_name: 'User',
-              is_admin: true
-            }).eq('id', authData.user.id);
+          if (signInError) {
+            // If the admin doesn't exist yet, create it
+            const { data: authData, error: signUpError } = await supabase.auth.signUp({
+              email: 'admin@fud.edu.ng', 
+              password: 'Admin@123',
+            });
+            
+            if (signUpError) throw signUpError;
+            
+            if (authData?.user) {
+              await supabase.from('profiles').insert({
+                id: authData.user.id,
+                first_name: 'Admin',
+                last_name: 'User',
+                is_admin: true
+              });
+
+              // Sign in after creating
+              await supabase.auth.signInWithPassword({
+                email: 'admin@fud.edu.ng',
+                password: 'Admin@123',
+              });
+            }
           }
+          
+          toast.success('Admin login successful!');
+          navigate('/admin/dashboard');
+          return;
+        } else {
+          // For non-default admin credentials, check if user has admin privileges
+          const { data: authData, error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+
+          if (error) throw error;
+
+          // Check if user is an admin
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('is_admin')
+            .eq('id', authData.user?.id)
+            .maybeSingle();
+
+          if (profileError) throw profileError;
+
+          if (!profileData?.is_admin) {
+            await supabase.auth.signOut();
+            throw new Error('Access denied. Admin authentication required.');
+          }
+
+          toast.success('Admin login successful!');
+          navigate('/admin/dashboard');
+          return;
         }
-        
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email: 'admin@fud.edu.ng',
-          password: 'Admin@123',
-        });
-        
-        if (signInError) throw signInError;
-        
-        toast.success('Admin login successful!');
-        navigate('/admin/dashboard');
-        return;
       }
       
       // Regular login flow
@@ -95,12 +126,12 @@ export function LoginForm({ isAdmin = false }: LoginFormProps) {
         .from('profiles')
         .select('is_admin')
         .eq('id', authData.user?.id)
-        .single();
+        .maybeSingle();
 
       if (profileError) throw profileError;
 
       // Redirect based on admin status
-      if (isAdmin && !profileData.is_admin) {
+      if (isAdmin && !profileData?.is_admin) {
         await supabase.auth.signOut();
         throw new Error('Access denied. Admin authentication required.');
       }
