@@ -45,7 +45,7 @@ export function RegisterForm() {
     }
   });
 
-  async function handleSubmit(data: RegisterFormValues) {
+  async function onSubmit(data: RegisterFormValues) {
     setIsLoading(true);
     try {
       const { email, password, firstName, lastName, matriculationNumber, graduationDate } = data;
@@ -59,16 +59,22 @@ export function RegisterForm() {
             last_name: lastName,
             matriculation_number: matriculationNumber,
             graduation_date: graduationDate,
-          },
-          emailRedirectTo: window.location.origin // Add proper redirect URL
+          }
         }
       });
 
       if (signUpError) throw signUpError;
+
+      // Sign in immediately after registration
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
       
-      // Instead of trying to sign in immediately, redirect to verification page
-      toast.success('Registration successful! Please check your email to verify your account.');
-      navigate('/verification');
+      if (signInError) throw signInError;
+      
+      toast.success('Registration successful! Please complete your profile.');
+      navigate('/alumni/profile');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'An error occurred';
       toast.error(errorMessage);
@@ -80,7 +86,7 @@ export function RegisterForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -104,36 +110,6 @@ export function RegisterForm() {
                 <FormLabel>Last Name</FormLabel>
                 <FormControl>
                   <Input placeholder="Enter your last name" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="matriculationNumber"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Matriculation Number</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter your matriculation number" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="graduationDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Graduation Date</FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -169,6 +145,34 @@ export function RegisterForm() {
           )}
         />
 
+        <FormField
+          control={form.control}
+          name="matriculationNumber"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Matriculation Number</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter your matriculation number" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="graduationDate"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Graduation Date</FormLabel>
+              <FormControl>
+                <Input type="date" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
         <Button 
           type="submit" 
           className="w-full bg-fud-green hover:bg-fud-green-dark"
@@ -177,10 +181,10 @@ export function RegisterForm() {
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Registering...
+              Creating account...
             </>
           ) : (
-            'Register'
+            'Create Account'
           )}
         </Button>
         

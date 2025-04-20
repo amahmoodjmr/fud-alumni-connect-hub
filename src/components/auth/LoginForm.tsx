@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { z } from 'zod';
@@ -18,13 +17,11 @@ import { Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-// Define schema outside component
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
-// Define form values type explicitly
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 interface LoginFormProps {
@@ -35,7 +32,6 @@ export function LoginForm({ isAdmin = false }: LoginFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Explicitly provide the type to useForm
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: { 
@@ -44,11 +40,10 @@ export function LoginForm({ isAdmin = false }: LoginFormProps) {
     }
   });
 
-  // Define submission handler separately to avoid deep type instantiation
-  const onSubmit = async (data: LoginFormValues) => {
+  const handleSubmit = async (formData: LoginFormValues) => {
     setIsLoading(true);
     try {
-      const { email, password } = data;
+      const { email, password } = formData;
       
       // Handle admin login
       if (isAdmin && email === 'admin' && password === '12345678') {
@@ -121,7 +116,7 @@ export function LoginForm({ isAdmin = false }: LoginFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="email"
