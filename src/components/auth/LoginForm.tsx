@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { z } from 'zod';
@@ -47,9 +48,10 @@ export function LoginForm({ isAdmin = false }: LoginFormProps) {
       
       // Handle admin login with updated password
       if (isAdmin && email === 'admin' && password === 'Admin@123') {
+        // Fix the type issue by providing explicit type for the select operation
         const { data: existingUser, error: checkError } = await supabase
           .from('profiles')
-          .select()
+          .select('*')
           .eq('email', 'admin@fud.edu.ng')
           .single();
           
