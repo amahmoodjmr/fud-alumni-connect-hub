@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -45,8 +44,7 @@ const ProtectedRoute = ({ children, adminOnly = false, requireCompleteProfile = 
           if (profileData) {
             setIsAuthenticated(true);
             setIsAdmin(profileData.is_admin);
-            
-            // Check if profile is complete based on required fields
+
             const isComplete = Boolean(
               profileData.first_name && 
               profileData.last_name && 
@@ -54,7 +52,7 @@ const ProtectedRoute = ({ children, adminOnly = false, requireCompleteProfile = 
               profileData.department && 
               profileData.profile_image_url
             );
-            
+
             setIsProfileComplete(isComplete);
           }
         }
@@ -79,26 +77,26 @@ const ProtectedRoute = ({ children, adminOnly = false, requireCompleteProfile = 
     };
   }, []);
 
-  if (isLoading) return null; // Or a loading spinner
+  if (isLoading) return null; // You can return a loading spinner here
 
-  if (!isAuthenticated && hasCheckedAuth) {
-    return <Navigate to="/login" replace />;
-  }
+  if (hasCheckedAuth) {
+    if (!isAuthenticated) {
+      return <Navigate to="/login" replace />;
+    }
 
-  if (adminOnly && !isAdmin && hasCheckedAuth) {
-    return <Navigate to="/alumni/dashboard" replace />;
-  }
+    if (adminOnly && !isAdmin) {
+      return <Navigate to="/alumni/dashboard" replace />;
+    }
 
-  // Redirect to profile completion if profile is not complete and not an admin
-  if (requireCompleteProfile && !isProfileComplete && !isAdmin && hasCheckedAuth) {
-    return <Navigate to="/alumni/profile" replace />;
+    if (requireCompleteProfile && !isProfileComplete && !isAdmin) {
+      return <Navigate to="/alumni/profile" replace />;
+    }
   }
 
   return <>{children}</>;
 };
 
 function App() {
-  // Create a new QueryClient instance inside the component 
   const queryClient = new QueryClient();
 
   return (
@@ -134,7 +132,7 @@ function App() {
               } 
             />
             
-            {/* Public Alumni Routes - Making these publicly accessible */}
+            {/* Public Alumni Routes */}
             <Route path="/alumni/directory" element={<AlumniDirectory />} />
             <Route path="/alumni/gallery" element={<Gallery />} />
             
